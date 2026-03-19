@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "583483376077",
+    "project_id": "clashofclaws-20777",
+    "storage_bucket": "clashofclaws-20777.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:583483376077:android:4940c2c26c7f64f85b8484",
+        "android_client_info": {
+          "package_name": "com.tdt4240Grp04.clashofclaws"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvyqWuX6MM6bGxHTKpsejvigKwbBUP7LM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
