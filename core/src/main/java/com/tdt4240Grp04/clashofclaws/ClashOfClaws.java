@@ -1,32 +1,42 @@
 package com.tdt4240Grp04.clashofclaws;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.tdt4240Grp04.clashofclaws.States.LoginState;
+import com.tdt4240Grp04.clashofclaws.States.StateManager;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class ClashOfClaws extends ApplicationAdapter {
     private SpriteBatch batch;
-    private Texture image;
+    private StateManager gsm;
+    private FirebaseSDK firebase;
+
+    public ClashOfClaws(FirebaseSDK firebase) {
+        this.firebase = firebase;
+    }
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
+        gsm = new StateManager();
+        gsm.push(new LoginState(gsm, firebase));
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        if (gsm != null) gsm.resize(width, height);
     }
 
     @Override
     public void render() {
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        batch.begin();
-        batch.draw(image, 140, 210);
-        batch.end();
+        gsm.update(Gdx.graphics.getDeltaTime());
+        gsm.render(batch);
     }
 
     @Override
     public void dispose() {
-        batch.dispose();
-        image.dispose();
+        if (batch != null) batch.dispose();
+        if (gsm != null) gsm.dispose();
     }
 }

@@ -18,10 +18,11 @@ public abstract class State {
         mouse = new Vector3();
     }
 
-    protected abstract void handleInput();
+    //protected abstract void handleInput();
     public abstract void update(float dt);
     // dt is amount of time since the last frame was rendered
     public abstract void render(SpriteBatch sb);
     // SpriteBatch is a collection of Sprite
+    public abstract void resize(int width, int height);
     public abstract void dispose();
 }
