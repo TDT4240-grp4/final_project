@@ -6,6 +6,7 @@ buildscript {
   }
 }
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 
 android {
@@ -124,10 +125,18 @@ tasks.register('run', Exec) {
 
 eclipse.project.name = appName + "-android"
 
-apply plugin: 'com.google.gms.google-services'
 
 dependencies {
   implementation platform('com.google.firebase:firebase-bom:32.2.0')
 
   implementation 'com.google.firebase:firebase-auth'
+
+  constraints {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22") {
+      because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
+    }
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22") {
+      because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
+    }
+  }
 }
