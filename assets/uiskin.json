@@ -1,71 +1,54 @@
 {
-com.badlogic.gdx.graphics.g2d.BitmapFont: {
-	Boogaloo-Regular: {
-		file: Boogaloo-Regular.fnt
-		scaledSize: -1
-		markupEnabled: false
-		flip: false
-	}
-}
-com.badlogic.gdx.graphics.Color: {
-	black: {
-		r: 0
-		g: 0
-		b: 0
-		a: 1
-	}
-	Neon: {
-		r: 0
-		g: 0
-		b: 1
-		a: 1
-	}
-	white: {
-		r: 1
-		g: 1
-		b: 1
-		a: 1
-	}
-	blue: {
-		r: 0
-		g: 0
-		b: 1
-		a: 1
-	}
-}
-com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
-	white: {
-		name: white-pixel
-		color: white
-	}
-}
-com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
-	default: {
-		font: Boogaloo-Regular
-		fontColor: white
-		background: white
-		focusedBackground: white
-		disabledBackground: white
-		cursor: white
-		selection: white
-	}
-}
-com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
-	default: {
-		font: Boogaloo-Regular
-		fontColor: white
-	}
-	title: {
-		font: Boogaloo-Regular
-		fontColor: blue
-	}
-}
-com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
-	default: {
-		font: Boogaloo-Regular
-		fontColor: white
-		up: white
-		down: white
-	}
-}
+  "com.badlogic.gdx.graphics.g2d.BitmapFont": {
+    "Boogaloo-Regular": {
+      "file": "Boogaloo-Regular.fnt",
+      "scaledSize": -1,
+      "markupEnabled": false,
+      "flip": false
+    },
+    "ComicConSans": {
+      "file": "comic_sans_bold.fnt",
+      "scaledSize": -1,
+      "markupEnabled": false,
+      "flip": false
+    }
+  },
+  "com.badlogic.gdx.graphics.Color": {
+    "black": { "r": 0, "g": 0, "b": 0, "a": 1 },
+    "Neon": { "r": 0, "g": 0, "b": 1, "a": 1 },
+    "Red": { "r": 1, "g": 0.2784314, "b": 0.2784314, a: 1 },
+    "white": { "r": 1, "g": 1, "b": 1, "a": 1 }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
+    "default": {
+      "font": "ComicConSans",
+      "fontColor": "white"
+    },
+    "title": {
+      "font": "ComicConSans",
+      "fontColor": "black"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable": {
+    "white": {
+      "name": "white-pixel",
+      "color": "white"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle": {
+    "default": {
+      "font": "ComicConSans",
+      "fontColor": "Red",
+      "background": "white",
+      "focusedBackground": "white",
+      "disabledBackground": "white"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+    "default": {
+      "font": "ComicConSans",
+      "fontColor": "white",
+      "downFontColor": "Red"
+    }
+  }
 }
