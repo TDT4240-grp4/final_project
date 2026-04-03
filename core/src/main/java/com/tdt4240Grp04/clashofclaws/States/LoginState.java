@@ -10,12 +10,16 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
 public class LoginState extends State {
     private Stage stage;
     private FirebaseSDK firebase;
     private Skin skin;
     private TextureAtlas atlas;
+    private Texture logoTexture1;
+    private Texture logoTexture2;
 
     public LoginState(StateManager gsm, FirebaseSDK firebase) {
         super(gsm);
@@ -25,12 +29,17 @@ public class LoginState extends State {
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        logoTexture1 = new Texture(Gdx.files.internal("cat1.png"));
+        Image logo1 = new Image(logoTexture1);
+        logoTexture2 = new Texture(Gdx.files.internal("cat2.png"));
+        Image logo2 = new Image(logoTexture2);
+
 
         Table table = new Table();
         table.setFillParent(true);
 
-        Label titleLabel = new Label("Clash of Claws", skin, "title");
-        titleLabel.setFontScale(2);
+        Label titleLabel = new Label("CLASH OF CLAWS", skin, "title");
+        titleLabel.setFontScale(2.5f);
         final Label feedbackLabel = new Label("", skin);
 
         Label emailLabel = new Label("Email:", skin);
@@ -53,6 +62,9 @@ public class LoginState extends State {
                 Gdx.input.setOnscreenKeyboardVisible(true);
             }
         });
+
+        Label taglineLabel = new Label("EAT. GROW. CONQUER.", skin, "title");
+        taglineLabel.setFontScale(1.5f);
 
         TextButton loginBtn = new TextButton("Login", skin);
         TextButton registerBtn = new TextButton("Create Account", skin);
@@ -92,16 +104,29 @@ public class LoginState extends State {
             }
         });
 
-        table.add(titleLabel).colspan(2).padBottom(30).row();
-        table.add(feedbackLabel).colspan(2).padBottom(10).row();
-        table.add(emailLabel).padRight(10);
-        table.add(emailField).width(300).padBottom(10).row();
+        table.clearChildren();
 
-        table.add(passwordLabel).padRight(10);
-        table.add(passwordField).width(300).padBottom(20).row();
+        Table loginForm = new Table();
+        loginForm.add(feedbackLabel).colspan(2).padBottom(10).row();
 
-        table.add(loginBtn).colspan(2).width(200).height(50).padBottom(10).row();
-        table.add(registerBtn).colspan(2).width(200).height(50);
+        loginForm.add(emailLabel).padRight(20);
+        loginForm.add(emailField).width(300).padBottom(10).row();
+
+        loginForm.add(passwordLabel).padRight(20);
+        loginForm.add(passwordField).width(300).padBottom(50).row();
+
+        loginForm.add(loginBtn).colspan(2).width(200).height(50).padBottom(10).row();
+        loginForm.add(registerBtn).colspan(2).width(200).height(50);
+
+        Table brandingGroup = new Table();
+        brandingGroup.add(logo1).size(500, 500).padBottom(20);
+        brandingGroup.add(logo2).size(500, 500).padBottom(20).row();
+        brandingGroup.add(titleLabel).colspan(2).padTop(10).center().row();
+        brandingGroup.add(taglineLabel).colspan(2).padTop(30).center();
+
+        table.add(brandingGroup).expand().left().padLeft(100);
+
+        table.add(loginForm).expand().left().padLeft(20);
 
         stage.addActor(table);
     }
@@ -118,7 +143,7 @@ public class LoginState extends State {
 
     @Override
     public void render(SpriteBatch sb) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.15f, 1f);
+        Gdx.gl.glClearColor(0.804f, 0.933f, 0.996f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.draw();
     }
@@ -128,5 +153,6 @@ public class LoginState extends State {
         stage.dispose();
         skin.dispose();
         if (atlas != null) atlas.dispose();
-    }
+        if (logoTexture1 != null) logoTexture1.dispose();
+     }
 }
