@@ -6,6 +6,8 @@ import com.badlogic.ashley.core.ComponentMapper;
 public class SizeComponent implements Component {
     public float scale = 1.0f;
     public float growthRate = 0.1f;
+    public float width = 32;
+    public float height = 32;
 
     public static final ComponentMapper<SizeComponent> MAPPER
         = ComponentMapper.getFor(SizeComponent.class);
