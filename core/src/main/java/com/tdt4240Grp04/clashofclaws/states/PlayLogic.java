@@ -8,16 +8,17 @@ import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 
 public class PlayLogic {
     private Engine engine;
+    private Entity player;
 
     public PlayLogic() {
         engine = new Engine();
 
         engine.addSystem(new MovementSystem());
 
-        spawnPlayer();
+        player = spawnPlayer();
     }
 
-    private void spawnPlayer() {
+    private Entity spawnPlayer() {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
@@ -30,6 +31,7 @@ public class PlayLogic {
         player.add(sizeComp);
 
         engine.addEntity(player);
+        return player;
     }
 
     public void update(float dt) {
@@ -38,5 +40,9 @@ public class PlayLogic {
 
     public Engine getEngine() {
         return engine;
+    }
+
+    public Entity getPlayer() {
+        return player;
     }
 }
