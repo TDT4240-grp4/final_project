@@ -1,4 +1,4 @@
-package com.tdt4240Grp04.clashofclaws.States;
+package com.tdt4240Grp04.clashofclaws.states;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
