@@ -13,13 +13,14 @@ public class PlayController {
     private Stage stage;
     private Touchpad touchpad;
     private Entity player;
+    private Skin skin;
 
     public PlayController(Entity player) {
         this.player = player;
         stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(stage);
 
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
+        skin = new Skin(Gdx.files.internal("uiskin.json"));
 
         touchpad = new Touchpad(10, skin);
         touchpad.setBounds(100, 100, 200, 200);
@@ -47,5 +48,6 @@ public class PlayController {
 
     public void dispose() {
         stage.dispose();
+        skin.dispose();
     }
 }
