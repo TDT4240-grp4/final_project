@@ -94,7 +94,7 @@ public class LoginState extends State {
         playBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                // gsm.set(new NameEntryState(gsm, firebase));
+                gsm.set(new CharacterSelectionState(gsm, firebase));
             }
         });
 
