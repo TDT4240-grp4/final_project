@@ -61,7 +61,7 @@ public class AddNameState extends State {
                 // VALIDATION: No empty, only letters and numbers
                 if (!name.isEmpty() && name.matches("^[a-zA-Z0-9]*$")) {
                     Gdx.app.log("Game", "Starting game with: " + name);
-                    // gsm.set(new PlayState(gsm, firebase, name, selectedCatIndex));
+                    gsm.set(new LobbyState(gsm, firebase, name, selectedCatIndex));
                 } else {
                     // Visual feedback: Shake the field or turn it red
                     nameField.setColor(Color.RED);
