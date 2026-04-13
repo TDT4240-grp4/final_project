@@ -1,5 +1,6 @@
 package com.tdt4240Grp04.clashofclaws.states;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Stack;
 
@@ -12,6 +13,7 @@ public class StateManager {
 
     public void push(State state) {
         states.push(state);
+        state.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     public void pop() {
@@ -21,6 +23,7 @@ public class StateManager {
     public void set(State state) {
         if (!states.isEmpty()) states.pop().dispose();
         states.push(state);
+        state.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     public void resize(int width, int height) {

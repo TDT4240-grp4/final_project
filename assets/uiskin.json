@@ -50,5 +50,11 @@
       "fontColor": "white",
       "downFontColor": "Red"
     }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Touchpad$TouchpadStyle": {
+    "default": {
+      "background": "white",
+      "knob": "white"
+    }
   }
 }

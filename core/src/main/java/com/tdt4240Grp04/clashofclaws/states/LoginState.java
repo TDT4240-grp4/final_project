@@ -72,21 +72,10 @@ public class LoginState extends State {
         loginBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                String email = emailField.getText();
-                String password = passwordField.getText();
-                Gdx.app.log("Login", "Attempting login for: " + email);
-                firebase.login(email, password, new FirebaseSDK.AuthCallback() {
+                Gdx.app.postRunnable(new Runnable() {
                     @Override
-                    public void onSuccess() {
-                        Gdx.app.postRunnable(() -> {
-                            feedbackLabel.setText("Login successful!");
-                            //gsm.set(new MainMenuState(gsm, firebase)); // Example of changing state
-                        });
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        Gdx.app.postRunnable(() -> feedbackLabel.setText("Error: " + message));
+                    public void run() {
+                        gsm.set(new PlayState(gsm, firebase));
                     }
                 });
             }

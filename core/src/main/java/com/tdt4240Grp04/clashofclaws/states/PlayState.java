@@ -1,5 +1,7 @@
 package com.tdt4240Grp04.clashofclaws.states;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 
@@ -22,6 +24,8 @@ public class PlayState extends State {
 
     @Override
     public void render(SpriteBatch sb) {
+        Gdx.gl.glClearColor(0.804f, 0.933f, 0.996f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         playView.render();
         playController.render();
     }
