@@ -8,6 +8,7 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
@@ -19,7 +20,7 @@ public class CollisionListener implements ContactListener {
     private ComponentMapper<KibbleComponent> kcm = ComponentMapper.getFor(KibbleComponent.class);
     private ComponentMapper<CharacterComponent> ccm = ComponentMapper.getFor(CharacterComponent.class);
     private ComponentMapper<SizeComponent> scm = ComponentMapper.getFor(SizeComponent.class);
-
+    private ComponentMapper<CatBodyComponent> bcm = ComponentMapper.getFor(CatBodyComponent.class);
 
     public CollisionListener(Engine engine) {
         this.engine = engine;
@@ -47,10 +48,11 @@ public class CollisionListener implements ContactListener {
 
             if (player != null && kibble != null) {
                 kibble.add(engine.createComponent(MarkedForRemovalComponent.class));
-                SizeComponent size = scm.get(player);
-                KibbleComponent kibbleComp = kcm.get(kibble);
-                size.width += kibbleComp.value;
-                size.height += kibbleComp.value;
+                if (bcm.has(player)) {
+                    CatBodyComponent body = bcm.get(player);
+                    body.maxLength += 5;
+                }
+
             }
         }
     }

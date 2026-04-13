@@ -23,7 +23,7 @@ public class PlayController {
     public PlayController(Entity player) {
         this.player = player;
 
-        gameStage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        gameStage = new Stage(new FitViewport(25f, 25f * (Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth())));
         uiStage = new Stage(new ScreenViewport());
 
         skin = new Skin(Gdx.files.internal("uiskin.json"));

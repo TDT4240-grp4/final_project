@@ -29,10 +29,6 @@ public class LoginState extends State {
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
-        logoTexture1 = new Texture(Gdx.files.internal("cat1.png"));
-        Image logo1 = new Image(logoTexture1);
-        logoTexture2 = new Texture(Gdx.files.internal("cat2.png"));
-        Image logo2 = new Image(logoTexture2);
 
 
         Table table = new Table();
@@ -108,8 +104,6 @@ public class LoginState extends State {
         loginForm.add(registerBtn).colspan(2).width(200).height(50);
 
         Table brandingGroup = new Table();
-        brandingGroup.add(logo1).size(500, 500).padBottom(20);
-        brandingGroup.add(logo2).size(500, 500).padBottom(20).row();
         brandingGroup.add(titleLabel).colspan(2).padTop(10).center().row();
         brandingGroup.add(taglineLabel).colspan(2).padTop(30).center();
 

@@ -11,11 +11,14 @@ import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.systems.CatBodySystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PhysicsSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.RemovalSystem;
@@ -26,24 +29,27 @@ public class PlayLogic {
     private Entity player;
     private World world;
     private Texture kibbleTexture;
+    private Texture catHeadTexture;
 
-    private final float MAP_WIDTH = 2000f;
-    private final float MAP_HEIGHT = 2000f;
+    private final float MAP_WIDTH = 200f;
+    private final float MAP_HEIGHT = 200f;
     public PlayLogic() {
         engine = new Engine();
         world = new World(new Vector2(0, 0), true);
         kibbleTexture = new Texture(Gdx.files.internal("kibble.png"));
+        catHeadTexture = new Texture(Gdx.files.internal("cat1_head.png"));
 
         world.setContactListener(new CollisionListener(engine));
 
         engine.addSystem(new MovementSystem());
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new RemovalSystem(world));
+        engine.addSystem(new CatBodySystem());
 
         createMapBounds();
         player = spawnPlayer();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             spawnKibble();
         }
     }
@@ -75,11 +81,17 @@ public class PlayLogic {
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
         charComp.x = MAP_WIDTH / 2f;
         charComp.y = MAP_HEIGHT / 2f;
-        charComp.speed = 150f;
+        charComp.speed = 10f;
         player.add(charComp);
 
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
         player.add(sizeComp);
+
+        player.add(engine.createComponent(PlayerComponent.class));
+
+        CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
+        catBody.color = com.badlogic.gdx.graphics.Color.valueOf("ffeedb"); // Match your cat color!
+        player.add(catBody);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -100,6 +112,9 @@ public class PlayLogic {
         physicsComponent.body = body;
         player.add(physicsComponent);
 
+        TextureComponent texComp = engine.createComponent(TextureComponent.class);
+        texComp.texture = catHeadTexture;
+        player.add(texComp);
 
         engine.addEntity(player);
         return player;
@@ -112,8 +127,8 @@ public class PlayLogic {
         kibble.add(kibbleComp);
 
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
-        sizeComp.width = 50;
-        sizeComp.height = 50;
+        sizeComp.width = 0.5f;
+        sizeComp.height = 0.5f;
         kibble.add(sizeComp);
 
         float x = (float) (Math.random() * MAP_WIDTH);
