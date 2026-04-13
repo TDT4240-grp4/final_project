@@ -81,8 +81,7 @@ public class CharacterSelectionState extends State {
         playBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                // Logic for transitioning to the game or name entry
-                // gsm.set(new LobbyState(gsm, firebase));
+                gsm.set(new AddNameState(gsm, firebase, currentCatIndex));
                 Gdx.app.log("Game", "Starting game with Cat: " + currentCatIndex);
             }
         });
