@@ -4,5 +4,8 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.ComponentMapper;
 
 public class PlayerComponent implements Component {
-    public static final ComponentMapper<PlayerComponent> MAPPER = ComponentMapper.getFor(PlayerComponent.class);
+    public int score = 0;
+
+    public static final ComponentMapper<PlayerComponent> MAPPER
+            = ComponentMapper.getFor(PlayerComponent.class);
 }

@@ -6,13 +6,18 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
@@ -21,8 +26,16 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
 public class PlayView {
     private Engine engine;
     private ShapeRenderer shapeRenderer;
-    private Viewport viewport;
+    private Viewport gameViewport;
+    private Viewport uiViewport;
+
     private Entity player;
+    private Skin skin;
+    private TextureAtlas atlas;
+
+    private Stage stage;
+    private Label scoreLabel;
+
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
@@ -31,7 +44,24 @@ public class PlayView {
         this.engine = engine;
         this.player = player;
         this.shapeRenderer = new ShapeRenderer();
-        this.viewport = new FitViewport(25f, 25f * (Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth()));    }
+        this.gameViewport = new FitViewport(25f, 25f * (Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth()));
+        this.uiViewport = new ScreenViewport();
+        atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
+        skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+
+        stage = new Stage(uiViewport);
+        Gdx.input.setInputProcessor(stage);
+
+        Table table = new Table();
+        table.top().left();
+        table.setFillParent(true);
+
+        scoreLabel = new Label("Score: 0", skin, "title");
+        scoreLabel.setFontScale(1f);
+        table.add(scoreLabel).padLeft(20).padTop(20);
+
+        stage.addActor(table);
+    }
 
     public void render(SpriteBatch batch) {
         // centre camera on player
@@ -41,11 +71,11 @@ public class PlayView {
             float targetY = playerPhys.body.getPosition().y;
 
             // Figure out half the screen size so the camera doesn't show past the edges
-            float halfViewWidth = viewport.getWorldWidth() / 2f;
-            float halfViewHeight = viewport.getWorldHeight() / 2f;
+            float halfViewWidth = gameViewport.getWorldWidth() / 2f;
+            float halfViewHeight = gameViewport.getWorldHeight() / 2f;
 
             float clampedX;
-            if (viewport.getWorldWidth() > MAP_WIDTH) {
+            if (gameViewport.getWorldWidth() > MAP_WIDTH) {
                 clampedX = MAP_WIDTH / 2f;
             } else {
                 clampedX = MathUtils.clamp(targetX, halfViewWidth, MAP_WIDTH - halfViewWidth);
@@ -53,20 +83,20 @@ public class PlayView {
 
             // Y-Axis: Center if screen is taller than map, otherwise clamp normally
             float clampedY;
-            if (viewport.getWorldHeight() > MAP_HEIGHT) {
+            if (gameViewport.getWorldHeight() > MAP_HEIGHT) {
                 clampedY = MAP_HEIGHT / 2f;
             } else {
                 clampedY = MathUtils.clamp(targetY, halfViewHeight, MAP_HEIGHT - halfViewHeight);
             }
             // Move the camera
-            viewport.getCamera().position.set(clampedX, clampedY, 0);
-            viewport.getCamera().update();
+            gameViewport.getCamera().position.set(clampedX, clampedY, 0);
+            gameViewport.getCamera().update();
         }
 
-        viewport.apply();
+        gameViewport.apply();
 
         // 1. Draw cat body
-        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         for (Entity entity : engine.getEntitiesFor(Family.all(PlayerComponent.class, CatBodyComponent.class).get())) {
@@ -87,7 +117,7 @@ public class PlayView {
 
 
         // 2. Draw everything else, including the cat head (TextureComponent)
-        batch.setProjectionMatrix(viewport.getCamera().combined);
+        batch.setProjectionMatrix(gameViewport.getCamera().combined);
         batch.begin();
         for (Entity entity: engine.getEntitiesFor(Family.all(TextureComponent.class, PhysicsComponent.class, SizeComponent.class).get())) {
             TextureComponent texture = TextureComponent.MAPPER.get(entity);
@@ -107,13 +137,26 @@ public class PlayView {
                 false, false); // flipX, flipY
         }
         batch.end();
+
+        // 3. Draw UI
+        PlayerComponent pc = player.getComponent(PlayerComponent.class);
+        if (pc != null) {
+            scoreLabel.setText("Score: " + pc.score);
+        }
+        stage.getViewport().apply();
+        stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+        stage.draw();
     }
 
     public void resize(int width, int height) {
-        viewport.update(width, height, true);
+        gameViewport.update(width, height, true);
+        uiViewport.update(width, height, true);
     }
 
     public void dispose() {
         shapeRenderer.dispose();
+        stage.dispose();
+        skin.dispose();
+        atlas.dispose();
     }
 }

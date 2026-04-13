@@ -44,7 +44,7 @@ public class PlayLogic {
         engine.addSystem(new MovementSystem());
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new RemovalSystem(world));
-        engine.addSystem(new CatBodySystem());
+        engine.addSystem(new CatBodySystem(world));
 
         createMapBounds();
         player = spawnPlayer();
