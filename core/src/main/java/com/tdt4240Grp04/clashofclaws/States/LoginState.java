@@ -97,6 +97,13 @@ public class LoginState extends State {
                 // gsm.set(new NameEntryState(gsm, firebase));
             }
         });
+
+        howToPlayBtn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                gsm.set(new HowToPlayState(gsm, firebase));
+            }
+        });
     }
 
     /**
