@@ -26,7 +26,7 @@ public class PlayState extends State {
     public void render(SpriteBatch sb) {
         Gdx.gl.glClearColor(0.804f, 0.933f, 0.996f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        playView.render();
+        playView.render(sb);
         playController.render();
     }
 
@@ -40,5 +40,6 @@ public class PlayState extends State {
     public void dispose() {
         playView.dispose();
         playController.dispose();
+        playLogic.dispose();
     }
 }
