@@ -13,7 +13,7 @@ public class PlayState extends State {
     public PlayState(StateManager gsm, FirebaseSDK firebase) {
         super(gsm);
         playLogic = new PlayLogic();
-        playView = new PlayView(playLogic.getEngine());
+        playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
         playController = new PlayController(playLogic.getPlayer());
     }
 

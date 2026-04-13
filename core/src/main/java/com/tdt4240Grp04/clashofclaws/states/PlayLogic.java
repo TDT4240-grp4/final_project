@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
@@ -26,6 +27,8 @@ public class PlayLogic {
     private World world;
     private Texture kibbleTexture;
 
+    private final float MAP_WIDTH = 2000f;
+    private final float MAP_HEIGHT = 2000f;
     public PlayLogic() {
         engine = new Engine();
         world = new World(new Vector2(0, 0), true);
@@ -37,6 +40,7 @@ public class PlayLogic {
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new RemovalSystem(world));
 
+        createMapBounds();
         player = spawnPlayer();
 
         for (int i = 0; i < 10; i++) {
@@ -44,12 +48,33 @@ public class PlayLogic {
         }
     }
 
+    private void createMapBounds() {
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.position.set(0, 0);
+        Body boundsBody = world.createBody(bodyDef);
+
+        ChainShape shape = new ChainShape();
+        float[] vertices = new float[] {
+            0, 0,
+            MAP_WIDTH, 0,
+            MAP_WIDTH, MAP_HEIGHT,
+            0, MAP_HEIGHT,
+            0, 0
+        };
+        shape.createChain(vertices);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        boundsBody.createFixture(fixtureDef);
+        shape.dispose();
+    }
     private Entity spawnPlayer() {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
-        charComp.x = Gdx.graphics.getWidth() / 2f;
-        charComp.y = Gdx.graphics.getHeight() / 2f;
+        charComp.x = MAP_WIDTH / 2f;
+        charComp.y = MAP_HEIGHT / 2f;
         charComp.speed = 150f;
         player.add(charComp);
 
@@ -91,8 +116,8 @@ public class PlayLogic {
         sizeComp.height = 50;
         kibble.add(sizeComp);
 
-        float x = (float) (Math.random() * Gdx.graphics.getWidth());
-        float y = (float) (Math.random() * Gdx.graphics.getHeight());
+        float x = (float) (Math.random() * MAP_WIDTH);
+        float y = (float) (Math.random() * MAP_HEIGHT);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
