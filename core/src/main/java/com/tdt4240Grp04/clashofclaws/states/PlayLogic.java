@@ -47,7 +47,8 @@ public class PlayLogic {
         engine.addSystem(new CatBodySystem(world));
 
         createMapBounds();
-        player = spawnPlayer();
+        //player = spawnPlayer();
+        player = spawnPlayer(MAP_WIDTH / 2f, MAP_HEIGHT / 2f, "ffeedb", 0);
 
         for (int i = 0; i < 100; i++) {
             spawnKibble();
@@ -75,27 +76,35 @@ public class PlayLogic {
         boundsBody.createFixture(fixtureDef);
         shape.dispose();
     }
-    private Entity spawnPlayer() {
+    private Entity spawnPlayer(float startX, float startY, String hexColor, int startingScore) {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
-        charComp.x = MAP_WIDTH / 2f;
-        charComp.y = MAP_HEIGHT / 2f;
+        //charComp.x = MAP_WIDTH / 2f;
+        //charComp.y = MAP_HEIGHT / 2f;
+        charComp.x = startX;
+        charComp.y = startY;
         charComp.speed = 10f;
         player.add(charComp);
 
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
         player.add(sizeComp);
 
-        player.add(engine.createComponent(PlayerComponent.class));
+        //player.add(engine.createComponent(PlayerComponent.class));
+
+        PlayerComponent playerComp = engine.createComponent(PlayerComponent.class);
+        playerComp.score = startingScore; // Give them a score to test the transfer!
+        player.add(playerComp);
 
         CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
-        catBody.color = com.badlogic.gdx.graphics.Color.valueOf("ffeedb"); // Match your cat color!
+        //catBody.color = com.badlogic.gdx.graphics.Color.valueOf("ffeedb"); // Match your cat color!
+        catBody.color = com.badlogic.gdx.graphics.Color.valueOf(hexColor);
         player.add(catBody);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(charComp.x, charComp.y);
+        bodyDef.fixedRotation = true;
         Body body = world.createBody(bodyDef);
         body.setUserData(player);
 

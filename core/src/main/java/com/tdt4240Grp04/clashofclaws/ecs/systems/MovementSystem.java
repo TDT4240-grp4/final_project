@@ -10,8 +10,8 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 
 public class MovementSystem extends IteratingSystem {
 
-    private static final float MAX_SPEED = 7.5f;
-    private static final float MIN_SPEED = 3.5f;
+    private static final float MAX_SPEED = 5f;
+    private static final float MIN_SPEED = 1.5f;
     private static final float MAX_LENGTH_FOR_MIN_SPEED = 150f;
     private static final float STARTING_LENGTH = 10f;
 
@@ -22,9 +22,9 @@ public class MovementSystem extends IteratingSystem {
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
-        CharacterComponent charComp = CharacterComponent.MAPPER.get(entity);
-        PhysicsComponent physComponent = PhysicsComponent.MAPPER.get(entity);
         PlayerComponent playerComp = PlayerComponent.MAPPER.get(entity);
+        PhysicsComponent physComponent = PhysicsComponent.MAPPER.get(entity);
+        CharacterComponent charComp = CharacterComponent.MAPPER.get(entity);
         CatBodyComponent catBodyComp = CatBodyComponent.MAPPER.get(entity);
 
 

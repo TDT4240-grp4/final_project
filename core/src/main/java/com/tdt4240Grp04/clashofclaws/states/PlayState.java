@@ -4,11 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
+import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 
 public class PlayState extends State {
     private PlayLogic playLogic;
     private PlayView playView;
     private PlayController playController;
+    private FirebaseSDK firebase;
 
     public PlayState(StateManager gsm, FirebaseSDK firebase) {
         super(gsm);
@@ -20,6 +22,11 @@ public class PlayState extends State {
     @Override
     public void update(float dt) {
         playLogic.update(dt);
+
+        PlayerComponent playerComp = playLogic.getPlayer().getComponent(PlayerComponent.class);
+        if (playerComp != null && playerComp.isDead) {
+            gsm.set(new GameOverState(gsm, firebase));
+        }
     }
 
     @Override
