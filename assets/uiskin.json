@@ -15,18 +15,20 @@
   },
   "com.badlogic.gdx.graphics.Color": {
     "black": { "r": 0, "g": 0, "b": 0, "a": 1 },
-    "Neon": { "r": 0, "g": 0, "b": 1, "a": 1 },
-    "Red": { "r": 1, "g": 0.2784314, "b": 0.2784314, a: 1 },
-    "white": { "r": 1, "g": 1, "b": 1, "a": 1 }
+    "white": { "r": 1, "g": 1, "b": 1, "a": 1 },
+    "Red": { "r": 1, "g": 0.278, "b": 0.278, "a": 1 },
+    "PlayBlue": { "r": 0.11, "g": 0.63, "b": 0.89, "a": 1 },
+    "SettingsBlue": { "r": 0.52, "g": 0.84, "b": 1, "a": 1 },
+    "RoomCodeGrey": { "r": 0.9, "g": 0.9, "b": 0.9, "a": 1 }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
     "default": {
       "font": "ComicConSans",
-      "fontColor": "white"
-    },
-    "title": {
-      "font": "ComicConSans",
       "fontColor": "black"
+    },
+    "subtitle": {
+      "font": "ComicConSans",
+      "fontColor": "Red"
     }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable": {
@@ -38,16 +40,25 @@
   "com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle": {
     "default": {
       "font": "ComicConSans",
-      "fontColor": "Red",
-      "background": "white",
-      "focusedBackground": "white",
-      "disabledBackground": "white"
+      "fontColor": "black",
+      "background": "white"
     }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
     "default": {
       "font": "ComicConSans",
-      "fontColor": "white",
+      "fontColor": "black",
+      "up": "white",
+      "down": "white",
+      "over": "white",
+      "downFontColor": "Red"
+    },
+    "play": {
+      "font": "ComicConSans",
+      "fontColor": "black",
+      "up": "white",
+      "down": "white",
+      "over": "white",
       "downFontColor": "Red"
     }
   }
