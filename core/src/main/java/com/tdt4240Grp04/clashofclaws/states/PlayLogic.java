@@ -46,12 +46,13 @@ public class PlayLogic {
 
     private final float MAP_WIDTH = 200f;
     private final float MAP_HEIGHT = 200f;
-    public PlayLogic() {
+    public PlayLogic(String name, int catIndex) {
         engine = new Engine();
         world = new World(new Vector2(0, 0), true);
         kibbleTexture = new Texture(Gdx.files.internal("kibble.png"));
-        catHeadTexture = new Texture(Gdx.files.internal("cat1_head.png"));
+        catHeadTexture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
         otherPlayers = new HashMap<>();
+
         // For when the server is run on local device
         //gameClient = new GameClient("10.0.2.2", 54555, 54777);
 
@@ -66,7 +67,8 @@ public class PlayLogic {
         engine.addSystem(new CatBodySystem(world));
 
         createMapBounds();
-        player = spawnPlayer(MAP_WIDTH / 2f, MAP_HEIGHT / 2f, "ffeedb", 0);
+
+        player = spawnPlayer(MAP_WIDTH / 2f, MAP_HEIGHT / 2f, getBodyHexColour(catIndex), name);
 
         gameClient.getClient().addListener(new Listener() {
             @Override
@@ -202,6 +204,17 @@ public class PlayLogic {
         }).start();
     }
 
+    private String getBodyHexColour(int catIndex) {
+        if (catIndex + 1 == 1) {
+            return "ffeedb";
+        }
+        else if (catIndex + 1 == 2) {
+            return "2b1803";
+        }
+        // add on for other cat
+        return "ffeedb";
+    }
+
     private void createMapBounds() {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
@@ -223,7 +236,7 @@ public class PlayLogic {
         shape.dispose();
     }
 
-    private Entity spawnPlayer(float startX, float startY, String hexColor, int startingScore) {
+    private Entity spawnPlayer(float startX, float startY, String hexColor, String playerName) {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
@@ -236,7 +249,8 @@ public class PlayLogic {
         player.add(sizeComp);
 
         PlayerComponent playerComp = engine.createComponent(PlayerComponent.class);
-        playerComp.score = startingScore;
+        playerComp.score = 0;
+        playerComp.name = playerName;
         playerComp.networkID = -1; // Default to -1 until connected
         player.add(playerComp);
 

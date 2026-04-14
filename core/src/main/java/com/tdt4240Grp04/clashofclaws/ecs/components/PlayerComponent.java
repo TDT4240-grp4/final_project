@@ -7,6 +7,7 @@ public class PlayerComponent implements Component {
     public int score = 0;
     public boolean isDead = false;
     public int networkID;
+    public String name = "";
 
     public static final ComponentMapper<PlayerComponent> MAPPER
             = ComponentMapper.getFor(PlayerComponent.class);

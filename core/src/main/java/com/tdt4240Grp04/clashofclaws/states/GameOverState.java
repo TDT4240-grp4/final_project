@@ -24,7 +24,7 @@ public class GameOverState extends State {
         Table table = new Table();
         table.setFillParent(true);
 
-        Label deathLabel = new Label("u died", skin, "title");
+        Label deathLabel = new Label("u died", skin);
         deathLabel.setFontScale(3f);
 
         Label instructionLabel = new Label("Tap to continue", skin);

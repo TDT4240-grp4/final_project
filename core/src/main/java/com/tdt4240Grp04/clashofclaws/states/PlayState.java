@@ -12,10 +12,10 @@ public class PlayState extends State {
     private PlayController playController;
     private FirebaseSDK firebase;
 
-    public PlayState(StateManager gsm, FirebaseSDK firebase) {
+    public PlayState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
         super(gsm);
         this.firebase = firebase;
-        playLogic = new PlayLogic();
+        playLogic = new PlayLogic(name, catIndex);
         playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
         playController = new PlayController(playLogic.getPlayer(), playView.getStage(), playView.getSkin());
 

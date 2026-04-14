@@ -15,6 +15,9 @@ public class LobbyState extends State {
     private Stage stage;
     private Skin skin;
     private Texture lobbyBg, catTexture;
+    private String playerName;
+    private int selectedCatIndex;
+    private FirebaseSDK firebase;
 
     // Player Components
     private Image playerCat;
@@ -30,6 +33,9 @@ public class LobbyState extends State {
 
     public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
         super(gsm);
+        this.playerName = name;
+        this.selectedCatIndex = catIndex;
+        this.firebase = firebase;
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         this.skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -109,6 +115,7 @@ public class LobbyState extends State {
     }
 
     private void handleLobbyLogic(float dt) {
+        gsm.set(new PlayState(gsm, firebase, playerName, selectedCatIndex));
         if (playerCount < 2) {
             statusLabel.setText("WAITING FOR 1 MORE PLAYER...");
             statusLabel.setColor(Color.YELLOW);
@@ -118,7 +125,7 @@ public class LobbyState extends State {
             statusLabel.setText("STARTING IN: " + (int)Math.ceil(countdown));
             statusLabel.setColor(Color.GREEN);
             if (countdown <= 0) {
-                // gsm.set(new GameState(...));
+                //gsm.set(new PlayState(gsm, firebase, playerName, selectedCatIndex));
             }
         }
     }

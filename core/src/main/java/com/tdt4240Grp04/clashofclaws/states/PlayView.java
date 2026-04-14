@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -36,7 +37,7 @@ public class PlayView {
     private Stage stage;
     private Label scoreLabel;
     private Label coordinatesLabel;
-
+    private Label nameLabel;
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
@@ -56,7 +57,7 @@ public class PlayView {
         table.top().left();
         table.setFillParent(true);
 
-        scoreLabel = new Label("Score: 0", skin, "title");
+        scoreLabel = new Label("Score: 0", skin);
         scoreLabel.setFontScale(1f);
         table.add(scoreLabel).padLeft(20).padTop(20);
 
@@ -68,8 +69,13 @@ public class PlayView {
 
         coordinatesLabel = new Label("X: 0 Y: 0", skin);
         coordinatesTable.add(coordinatesLabel).padRight(20).padBottom(20);
-
         stage.addActor(coordinatesTable);
+
+        PlayerComponent pComp = player.getComponent(PlayerComponent.class);
+        String playerName = pComp.name;
+        nameLabel = new Label(playerName, skin);
+        nameLabel.setColor(Color.WHITE);
+        stage.addActor(nameLabel);
     }
 
     public Stage getStage() {
@@ -163,6 +169,27 @@ public class PlayView {
         PhysicsComponent playerPhysForLabel = PhysicsComponent.MAPPER.get(player);
         if (playerPhysForLabel != null && playerPhysForLabel.body != null) {
             coordinatesLabel.setText(String.format("X: %.2f Y: %.2f", playerPhysForLabel.body.getPosition().x, playerPhysForLabel.body.getPosition().y));
+        }
+
+        PhysicsComponent physComp = player.getComponent(PhysicsComponent.class);
+        SizeComponent sizeComp = player.getComponent(SizeComponent.class);
+
+        if (physComp != null && sizeComp != null) {
+            float playerX = physComp.body.getPosition().x;
+            float playerY = physComp.body.getPosition().y;
+
+            Vector3 worldPos = new com.badlogic.gdx.math.Vector3(
+                playerX,
+                playerY + (sizeComp.height / 2f),
+                0
+            );
+
+            Vector3 screenPos = gameViewport.getCamera().project(worldPos);
+
+            nameLabel.setPosition(
+                screenPos.x - (nameLabel.getWidth() / 2f),
+                screenPos.y + 10f
+            );
         }
         stage.getViewport().apply();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
