@@ -35,6 +35,7 @@ public class PlayView {
 
     private Stage stage;
     private Label scoreLabel;
+    private Label coordinatesLabel;
 
 
     private static final float MAP_WIDTH = 200f;
@@ -50,7 +51,6 @@ public class PlayView {
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
 
         stage = new Stage(uiViewport);
-        Gdx.input.setInputProcessor(stage);
 
         Table table = new Table();
         table.top().left();
@@ -61,6 +61,23 @@ public class PlayView {
         table.add(scoreLabel).padLeft(20).padTop(20);
 
         stage.addActor(table);
+
+        Table coordinatesTable = new Table();
+        coordinatesTable.bottom().right();
+        coordinatesTable.setFillParent(true);
+
+        coordinatesLabel = new Label("X: 0 Y: 0", skin);
+        coordinatesTable.add(coordinatesLabel).padRight(20).padBottom(20);
+
+        stage.addActor(coordinatesTable);
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public Skin getSkin() {
+        return skin;
     }
 
     public void render(SpriteBatch batch) {
@@ -99,7 +116,7 @@ public class PlayView {
         shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (Entity entity : engine.getEntitiesFor(Family.all(PlayerComponent.class, CatBodyComponent.class).get())) {
+        for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatBodyComponent.class).get())) {
             CatBodyComponent catBody = CatBodyComponent.MAPPER.get(entity);
             // 1. Draw slightly larger black circles first for the outline
             shapeRenderer.setColor(Color.BLACK);
@@ -142,6 +159,10 @@ public class PlayView {
         PlayerComponent pc = player.getComponent(PlayerComponent.class);
         if (pc != null) {
             scoreLabel.setText("Score: " + pc.score);
+        }
+        PhysicsComponent playerPhysForLabel = PhysicsComponent.MAPPER.get(player);
+        if (playerPhysForLabel != null && playerPhysForLabel.body != null) {
+            coordinatesLabel.setText(String.format("X: %.2f Y: %.2f", playerPhysForLabel.body.getPosition().x, playerPhysForLabel.body.getPosition().y));
         }
         stage.getViewport().apply();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));

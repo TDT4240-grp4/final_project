@@ -17,7 +17,7 @@ public class MovementSystem extends IteratingSystem {
 
 
     public MovementSystem() {
-        super(Family.all(CharacterComponent.class, PhysicsComponent.class).get());
+        super(Family.all(CharacterComponent.class, PhysicsComponent.class, PlayerComponent.class).get());
     }
 
     @Override

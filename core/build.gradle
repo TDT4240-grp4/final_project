@@ -1,3 +1,7 @@
+plugins {
+  id 'com.gradleup.shadow' version '8.3.0'
+}
+
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
 
@@ -5,7 +9,17 @@ dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
   implementation "com.badlogicgames.ashley:ashley:1.7.4"
+  implementation "com.esotericsoftware:kryonet:2.22.0-RC1"
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+  }
+}
+
+shadowJar {
+  archiveClassifier.set('all')
+  manifest {
+    attributes(
+      'Main-Class': 'com.tdt4240Grp04.clashofclaws.network.GameServer'
+    )
   }
 }
