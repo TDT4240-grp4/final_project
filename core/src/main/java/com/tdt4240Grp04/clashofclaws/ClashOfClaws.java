@@ -3,8 +3,8 @@ package com.tdt4240Grp04.clashofclaws;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.tdt4240Grp04.clashofclaws.States.LoginState;
-import com.tdt4240Grp04.clashofclaws.States.StateManager;
+import com.tdt4240Grp04.clashofclaws.states.LoginState;
+import com.tdt4240Grp04.clashofclaws.states.StateManager;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class ClashOfClaws extends ApplicationAdapter {

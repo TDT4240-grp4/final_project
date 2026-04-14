@@ -6,22 +6,44 @@ filter: Linear, Linear
 repeat: none
 white-pixel
   rotate: false
-  xy: 509, 734
+  xy: 506, 507
   size: 1, 1
   orig: 1, 1
   offset: 0, 0
   index: -1
 Boogaloo-Regular
   rotate: false
-  xy: 1, 1
+  xy: 1, 203
   size: 503, 305
   orig: 503, 305
   offset: 0, 0
   index: -1
 comic_sans_bold
   rotate: false
-  xy: 1, 308
+  xy: 1, 510
   size: 506, 427
   orig: 506, 427
   offset: 0, 0
   index: -1
+background
+  rotate: false
+  xy: 1, 1
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+joystick
+  rotate: false
+  xy: 509, 605
+  size: 105, 105
+  orig: 105, 105
+  offset: 0, 0
+  index: -1
+rounded_rectangle
+  rotate: false
+  xy: 509, 712
+  size: 225, 225
+  orig: 225, 225
+  offset: 0, 0
+  index: -1
+

@@ -61,5 +61,11 @@
       "over": "white",
       "downFontColor": "Red"
     }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Touchpad$TouchpadStyle": {
+    "default": {
+      "background": "background",
+      "knob": "joystick"
+    }
   }
 }
