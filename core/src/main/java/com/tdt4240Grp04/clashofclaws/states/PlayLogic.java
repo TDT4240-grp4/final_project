@@ -44,6 +44,7 @@ public class PlayLogic {
     private Texture catHeadTexture;
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
+    private boolean hadOpponents = false;
 
     private final float MAP_WIDTH = 200f;
     private final float MAP_HEIGHT = 200f;
@@ -82,6 +83,7 @@ public class PlayLogic {
                     Gdx.app.postRunnable(() -> {
                         Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
+                        hadOpponents = true;
                         Gdx.app.log(TAG, "Spawned opponent with ID: " + msg.id);
                     });
                 } else if (object instanceof Network.PlayerDisconnected) {
@@ -169,7 +171,6 @@ public class PlayLogic {
                             }
                         }
 
-                        // 2. Handle Winner
                         if (msg.winnerId == myId) {
                             // I am the winner
                             if (pComp != null) {
@@ -177,7 +178,6 @@ public class PlayLogic {
                                 Gdx.app.log(TAG, "4444444444444");
                             }
                         } else {
-                            // Opponent is the winner
                             Entity winner = otherPlayers.get(msg.winnerId);
                             if (winner != null) {
                                 OpponentComponent oppComp = winner.getComponent(OpponentComponent.class);
@@ -389,13 +389,13 @@ public class PlayLogic {
         return player;
     }
 
-    public World getWorld() {
-        return world;
-    }
-
     public boolean isPlayerDead() {
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
         return pComp == null || pComp.isDead;
+    }
+
+    public boolean hasPlayerWon() {
+        return hadOpponents && otherPlayers.isEmpty() && !isPlayerDead();
     }
 
     public void dispose() {

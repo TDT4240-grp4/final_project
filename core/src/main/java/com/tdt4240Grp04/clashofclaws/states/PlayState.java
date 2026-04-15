@@ -28,6 +28,9 @@ public class PlayState extends State {
         if (playLogic.isPlayerDead()) {
             gsm.set(new GameOverState(gsm, firebase));
         }
+        else if (playLogic.hasPlayerWon()) {
+            gsm.set(new WinnerState(gsm, firebase));
+        }
     }
 
     @Override

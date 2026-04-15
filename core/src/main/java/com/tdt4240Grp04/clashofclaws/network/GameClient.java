@@ -3,7 +3,6 @@ package com.tdt4240Grp04.clashofclaws.network;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.tdt4240Grp04.clashofclaws.network.Network;
 
 import java.io.IOException;
 
