@@ -80,7 +80,7 @@ public class PlayLogic {
                 if (object instanceof Network.PlayerConnected) {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
                     Gdx.app.postRunnable(() -> {
-                        Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, "ffeedb");
+                        Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
                         Gdx.app.log(TAG, "Spawned opponent with ID: " + msg.id);
                     });
@@ -277,7 +277,7 @@ public class PlayLogic {
         return player;
     }
 
-    private Entity spawnOpponent(int networkId, float startX, float startY, String hexColor) {
+    private Entity spawnOpponent(int networkId, float startX, float startY, String hexColor, int catIndex, String name) {
         Entity opponent = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
@@ -291,6 +291,7 @@ public class PlayLogic {
 
         OpponentComponent opponentComp = engine.createComponent(OpponentComponent.class);
         opponentComp.networkId = networkId;
+        opponentComp.name = name;
         opponent.add(opponentComp);
 
         CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
@@ -318,7 +319,7 @@ public class PlayLogic {
         opponent.add(physicsComponent);
 
         TextureComponent texComp = engine.createComponent(TextureComponent.class);
-        texComp.texture = catHeadTexture;
+        texComp.texture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
         opponent.add(texComp);
 
         engine.addEntity(opponent);

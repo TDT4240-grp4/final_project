@@ -53,6 +53,8 @@ public class Network {
     public static class PlayerConnected {
         public int id;
         public float x, y;
+        public String name;
+        public int catIndex;
     }
 
     public static class PlayerDisconnected {

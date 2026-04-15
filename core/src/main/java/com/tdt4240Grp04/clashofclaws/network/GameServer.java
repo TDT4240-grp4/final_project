@@ -54,6 +54,12 @@ public class GameServer {
                         Network.JoinLobby join = (Network.JoinLobby) object;
                         playersInLobby++;
 
+                        Network.PlayerConnected knownPlayer = players.get(connection.getID());
+                        if (knownPlayer != null) {
+                            knownPlayer.name = join.name;
+                            knownPlayer.catIndex = join.catIndex;
+                        }
+
                         Network.LobbyUpdate update = new Network.LobbyUpdate();
                         update.currentPlayers = playersInLobby;
                         server.sendToAllTCP(update);

@@ -19,10 +19,13 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
+
+import java.util.HashMap;
 
 public class PlayView {
     private Engine engine;
@@ -37,7 +40,7 @@ public class PlayView {
     private Stage stage;
     private Label scoreLabel;
     private Label coordinatesLabel;
-    private Label nameLabel;
+    private HashMap<Entity, Label> nameLabels;
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
@@ -72,10 +75,7 @@ public class PlayView {
         stage.addActor(coordinatesTable);
 
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
-        String playerName = pComp.name;
-        nameLabel = new Label(playerName, skin);
-        nameLabel.setColor(Color.WHITE);
-        stage.addActor(nameLabel);
+        nameLabels = new HashMap<>();
     }
 
     public Stage getStage() {
@@ -118,19 +118,18 @@ public class PlayView {
 
         gameViewport.apply();
 
-        // 1. Draw cat body
+        // cat body
         shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatBodyComponent.class).get())) {
             CatBodyComponent catBody = CatBodyComponent.MAPPER.get(entity);
-            // 1. Draw slightly larger black circles first for the outline
             shapeRenderer.setColor(Color.BLACK);
             for (Vector2 segment : catBody.bodyParts) {
                 shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius + 0.03f, 30);
             }
 
-            // 2. Draw the inner color circles on top
+            // inner color circles on top
             shapeRenderer.setColor(catBody.color);
             for (Vector2 segment : catBody.bodyParts) {
                 shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius, 30);
@@ -139,7 +138,7 @@ public class PlayView {
         shapeRenderer.end();
 
 
-        // 2. Draw everything else, including the cat head (TextureComponent)
+        // draw everything else, including the cat head (TextureComponent)
         batch.setProjectionMatrix(gameViewport.getCamera().combined);
         batch.begin();
         for (Entity entity: engine.getEntitiesFor(Family.all(TextureComponent.class, PhysicsComponent.class, SizeComponent.class).get())) {
@@ -161,7 +160,7 @@ public class PlayView {
         }
         batch.end();
 
-        // 3. Draw UI
+        // draw UI
         PlayerComponent pc = player.getComponent(PlayerComponent.class);
         if (pc != null) {
             scoreLabel.setText("Score: " + pc.score);
@@ -171,26 +170,51 @@ public class PlayView {
             coordinatesLabel.setText(String.format("X: %.2f Y: %.2f", playerPhysForLabel.body.getPosition().x, playerPhysForLabel.body.getPosition().y));
         }
 
-        PhysicsComponent physComp = player.getComponent(PhysicsComponent.class);
-        SizeComponent sizeComp = player.getComponent(SizeComponent.class);
+        for (Entity e : engine.getEntitiesFor(Family.one(PlayerComponent.class, OpponentComponent.class).get())) {
+            PhysicsComponent physComp = e.getComponent(PhysicsComponent.class);
+            SizeComponent sizeComp = e.getComponent(SizeComponent.class);
 
-        if (physComp != null && sizeComp != null) {
-            float playerX = physComp.body.getPosition().x;
-            float playerY = physComp.body.getPosition().y;
+            if (physComp == null || sizeComp == null) continue;
 
+            Label label = nameLabels.get(e);
+
+            // If the label doesn't exist yet, create it
+            if (label == null) {
+                String name = "Unknown";
+                PlayerComponent pComp = e.getComponent(PlayerComponent.class);
+                OpponentComponent oComp = e.getComponent(OpponentComponent.class);
+                if (pComp != null) name = pComp.name;
+                if (oComp != null && oComp.name != null) name = oComp.name;
+
+                label = new Label(name, skin);
+                label.setColor(Color.WHITE);
+                stage.addActor(label);
+                nameLabels.put(e, label);
+            }
+
+            // Project physics coordinates to screen coordinates
             Vector3 worldPos = new com.badlogic.gdx.math.Vector3(
-                playerX,
-                playerY + (sizeComp.height / 2f),
+                physComp.body.getPosition().x,
+                physComp.body.getPosition().y + (sizeComp.height / 2f),
                 0
             );
-
             Vector3 screenPos = gameViewport.getCamera().project(worldPos);
 
-            nameLabel.setPosition(
-                screenPos.x - (nameLabel.getWidth() / 2f),
+            label.setPosition(
+                screenPos.x - (label.getWidth() / 2f),
                 screenPos.y + 10f
             );
         }
+
+        // Cleanup labels for dead/disconnected cats
+        nameLabels.entrySet().removeIf(entry -> {
+            if (!engine.getEntities().contains(entry.getKey(), true)) {
+                entry.getValue().remove(); // removes label from the stage
+                return true;               // removes from the map
+            }
+            return false;
+        });
+
         stage.getViewport().apply();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
