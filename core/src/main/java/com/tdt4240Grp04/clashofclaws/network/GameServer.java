@@ -1,6 +1,5 @@
 package com.tdt4240Grp04.clashofclaws.network;
 
-import com.badlogic.gdx.Net;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -14,10 +13,11 @@ public class GameServer {
     private static ConcurrentHashMap<Integer, Network.PlayerConnected> players = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, Network.KibbleData> kibbles = new ConcurrentHashMap<>();
     private static int kibbleIdCounter = 0;
+    private static int playersInLobby = 0;
 
     public static void main(String[] args) {
 
-        for(int i = 0; i < 100; i++) {
+        for(int i = 0; i < 200; i++) {
             Network.KibbleData k = new Network.KibbleData();
             k.id = kibbleIdCounter++;
             k.x = (float) (Math.random() * 200f); // MAP_WIDTH
@@ -26,7 +26,7 @@ public class GameServer {
         }
 
         try {
-            Server server = new Server();
+            Server server = new Server(16384, 16384);
             Network.register(server);
             server.start();
 
@@ -38,10 +38,6 @@ public class GameServer {
             server.addListener(new Listener() {
                 @Override
                 public void connected(Connection connection) {
-                    Network.KibbleInitialSync syncMsg = new Network.KibbleInitialSync();
-                    syncMsg.kibbles = new ArrayList<>(kibbles.values());
-                    server.sendToTCP(connection.getID(), syncMsg);
-
                     System.out.println("A new client connected! ID: " + connection.getID());
                     Network.PlayerConnected newPlayer = new Network.PlayerConnected();
                     newPlayer.id = connection.getID();
@@ -49,21 +45,50 @@ public class GameServer {
                     newPlayer.y = 100f;
 
                     players.put(newPlayer.id, newPlayer);
-
-                    // tell everyone else that that new player has joined
-                    server.sendToAllExceptTCP(connection.getID(), newPlayer);
-
-                    // tell the new player about everyone else who is already here
-                    for (Network.PlayerConnected existingPlayer: players.values()) {
-                        if (existingPlayer.id != connection.getID()) {
-                            server.sendToTCP(connection.getID(), existingPlayer);
-                        }
-                    }
                 }
 
                 @Override
                 public void received(Connection connection, Object object) {
-                    if (object instanceof Network.PlayerMoved) {
+                    if (object instanceof Network.JoinLobby) {
+                        Network.JoinLobby join = (Network.JoinLobby) object;
+                        playersInLobby++;
+
+                        Network.PlayerConnected knownPlayer = players.get(connection.getID());
+                        if (knownPlayer != null) {
+                            knownPlayer.name = join.name;
+                            knownPlayer.catIndex = join.catIndex;
+                        }
+
+                        Network.LobbyUpdate update = new Network.LobbyUpdate();
+                        update.currentPlayers = playersInLobby;
+                        server.sendToAllTCP(update);
+
+                        // if 2 players are in, start the game
+                        if (playersInLobby >= 2) {
+                            System.out.println("2 Players connected! Starting game.");
+                            server.sendToAllTCP(new Network.GameStart());
+                        }
+                    }
+                    else if (object instanceof Network.ClientReady) {
+                        // send all the kibbles to the newly ready player
+                        Network.KibbleInitialSync syncMsg = new Network.KibbleInitialSync();
+                        syncMsg.kibbles = new ArrayList<>(kibbles.values());
+                        server.sendToTCP(connection.getID(), syncMsg);
+
+                        // tell the newly ready player about everyone else
+                        for (Network.PlayerConnected existingPlayer: players.values()) {
+                            if (existingPlayer.id != connection.getID()) {
+                                server.sendToTCP(connection.getID(), existingPlayer);
+                            }
+                        }
+
+                        // tell everyone else that this player has entered the game
+                        Network.PlayerConnected thisPlayer = players.get(connection.getID());
+                        if (thisPlayer != null) {
+                            server.sendToAllExceptTCP(connection.getID(), thisPlayer);
+                        }
+                    }
+                    else if (object instanceof Network.PlayerMoved) {
                         Network.PlayerMoved moveEvent = (Network.PlayerMoved) object;
 
                         moveEvent.id = connection.getID();
@@ -92,20 +117,25 @@ public class GameServer {
                         Network.CatDefeated defeatEvent = (Network.CatDefeated) object;
                         server.sendToAllTCP(defeatEvent);
                     }
+
                 }
 
                 @Override
                 public void disconnected(Connection connection) {
                     System.out.println("Client disconnected. ID: " + connection.getID());
 
-                    players.remove(connection.getID());
+                    if (players.containsKey(connection.getID())) {
+                        players.remove(connection.getID());
+                        playersInLobby--;
 
-                    // tell everyone to delete this player entity
-                    Network.PlayerDisconnected disconnectedMsg = new Network.PlayerDisconnected();
-                    disconnectedMsg.id = connection.getID();
-                    server.sendToAllTCP(disconnectedMsg);
+                        Network.LobbyUpdate update = new Network.LobbyUpdate();
+                        update.currentPlayers = playersInLobby;
+                        server.sendToAllTCP(update);
 
-
+                        Network.PlayerDisconnected disconnectedMsg = new Network.PlayerDisconnected();
+                        disconnectedMsg.id = connection.getID();
+                        server.sendToAllTCP(disconnectedMsg);
+                    }
                 }
             });
 

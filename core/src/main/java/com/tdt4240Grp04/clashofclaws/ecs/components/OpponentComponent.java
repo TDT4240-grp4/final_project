@@ -7,6 +7,7 @@ public class OpponentComponent implements Component {
     public int networkId;
     public int score = 0;
     public boolean isDead = false;
+    public String name = "";
 
     public static final ComponentMapper<OpponentComponent> MAPPER
         = ComponentMapper.getFor(OpponentComponent.class);

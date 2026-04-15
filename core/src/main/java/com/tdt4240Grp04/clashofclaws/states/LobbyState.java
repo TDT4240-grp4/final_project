@@ -9,12 +9,22 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
+import com.tdt4240Grp04.clashofclaws.network.GameClient;
+import com.tdt4240Grp04.clashofclaws.network.Network;
+
+import java.io.IOException;
 
 public class LobbyState extends State {
     private Stage stage;
     private Skin skin;
     private Texture lobbyBg, catTexture;
+    private String playerName;
+    private int selectedCatIndex;
+    private FirebaseSDK firebase;
+    private GameClient gameClient;
 
     // Player Components
     private Image playerCat;
@@ -30,9 +40,50 @@ public class LobbyState extends State {
 
     public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
         super(gsm);
+        this.playerName = name;
+        this.selectedCatIndex = catIndex;
+        this.firebase = firebase;
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         this.skin = new Skin(Gdx.files.internal("uiskin.json"));
+
+        gameClient = new GameClient("10.0.2.2", 54555, 54777); // Local
+        //gameClient = new GameClient("20.251.119.106", 54555, 54777); // Azure
+
+        gameClient.getClient().addListener(new Listener() {
+            @Override
+            public void connected(Connection connection) {
+                // when connected, tell the server we joined the lobby
+                Network.JoinLobby joinMsg = new Network.JoinLobby();
+                joinMsg.name = playerName;
+                joinMsg.catIndex = selectedCatIndex;
+                gameClient.sendTCP(joinMsg);
+            }
+
+            @Override
+            public void received(Connection connection, Object object) {
+                if (object instanceof Network.LobbyUpdate) {
+                    Network.LobbyUpdate update = (Network.LobbyUpdate) object;
+                    // update UI on main thread
+                    Gdx.app.postRunnable(() -> {
+                        statusLabel.setText("WAITING... " + update.currentPlayers + "/2 PLAYERS");
+                    });
+                } else if (object instanceof Network.GameStart) {
+                    Gdx.app.postRunnable(() -> {
+                        // pass the connected gameClient to PlayState
+                        gsm.set(new PlayState(gsm, firebase, gameClient, playerName, selectedCatIndex));
+                    });
+                }
+            }
+        });
+
+        new Thread(() -> {
+            try {
+                gameClient.connect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
 
         // 1. Full Screen Background
         lobbyBg = new Texture("lobbyarea.png");
@@ -62,7 +113,8 @@ public class LobbyState extends State {
         topPopup.setBackground(skin.newDrawable("white", new Color(0, 0, 0, 0.5f)));
 
         codeLabel = new Label("GAME CODE: ABCD", skin);
-        statusLabel = new Label("WAITING FOR 1 MORE PLAYER...", skin);
+        // ****statusLabel = new Label("WAITING FOR 1 MORE PLAYER...", skin);
+        statusLabel = new Label("CONNECTING TO SERVER...", skin);
         statusLabel.setColor(Color.YELLOW);
 
         topPopup.add(codeLabel).row();
@@ -104,23 +156,6 @@ public class LobbyState extends State {
             playerPos.x + (playerCat.getWidth() / 2f) - (nameLabel.getWidth() / 2f),
             playerPos.y + playerCat.getHeight() + 5
         );
-
-        handleLobbyLogic(dt);
-    }
-
-    private void handleLobbyLogic(float dt) {
-        if (playerCount < 2) {
-            statusLabel.setText("WAITING FOR 1 MORE PLAYER...");
-            statusLabel.setColor(Color.YELLOW);
-            countdown = 10f;
-        } else {
-            countdown -= dt;
-            statusLabel.setText("STARTING IN: " + (int)Math.ceil(countdown));
-            statusLabel.setColor(Color.GREEN);
-            if (countdown <= 0) {
-                // gsm.set(new GameState(...));
-            }
-        }
     }
 
     @Override

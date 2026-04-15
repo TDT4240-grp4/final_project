@@ -3,6 +3,7 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
@@ -43,20 +44,17 @@ public class PlayLogic {
     private Texture catHeadTexture;
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
+    private boolean hadOpponents = false;
 
     private final float MAP_WIDTH = 200f;
     private final float MAP_HEIGHT = 200f;
-    public PlayLogic() {
+    public PlayLogic(GameClient gameClient, String name, int catIndex) {
+        this.gameClient = gameClient;
         engine = new Engine();
         world = new World(new Vector2(0, 0), true);
         kibbleTexture = new Texture(Gdx.files.internal("kibble.png"));
-        catHeadTexture = new Texture(Gdx.files.internal("cat1_head.png"));
+        catHeadTexture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
         otherPlayers = new HashMap<>();
-        // For when the server is run on local device
-        //gameClient = new GameClient("10.0.2.2", 54555, 54777);
-
-        // Remote Azure server
-        gameClient = new GameClient("20.251.119.106", 54555, 54777);
 
         world.setContactListener(new CollisionListener(engine, gameClient));
 
@@ -66,23 +64,26 @@ public class PlayLogic {
         engine.addSystem(new CatBodySystem(world));
 
         createMapBounds();
-        player = spawnPlayer(MAP_WIDTH / 2f, MAP_HEIGHT / 2f, "ffeedb", 0);
+
+        float startX = (float) (Math.random() * (MAP_WIDTH - 20f)) + 10f;
+        float startY = (float) (Math.random() * (MAP_HEIGHT - 20f)) + 10f;
+        player = spawnPlayer(startX, startY, getBodyHexColour(catIndex), name);
+
+
+        PlayerComponent pComp = player.getComponent(PlayerComponent.class);
+        if (pComp != null) {
+            pComp.networkID = gameClient.getClient().getID();
+        }
+
 
         gameClient.getClient().addListener(new Listener() {
-            @Override
-            public void connected(Connection connection) {
-                PlayerComponent pComp = player.getComponent(PlayerComponent.class);
-                if (pComp != null) {
-                    pComp.networkID = connection.getID();
-                }
-            }
-
             public void received(Connection connection, Object object) {
                 if (object instanceof Network.PlayerConnected) {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
                     Gdx.app.postRunnable(() -> {
-                        Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, "ffeedb");
+                        Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
+                        hadOpponents = true;
                         Gdx.app.log(TAG, "Spawned opponent with ID: " + msg.id);
                     });
                 } else if (object instanceof Network.PlayerDisconnected) {
@@ -170,7 +171,6 @@ public class PlayLogic {
                             }
                         }
 
-                        // 2. Handle Winner
                         if (msg.winnerId == myId) {
                             // I am the winner
                             if (pComp != null) {
@@ -178,7 +178,6 @@ public class PlayLogic {
                                 Gdx.app.log(TAG, "4444444444444");
                             }
                         } else {
-                            // Opponent is the winner
                             Entity winner = otherPlayers.get(msg.winnerId);
                             if (winner != null) {
                                 OpponentComponent oppComp = winner.getComponent(OpponentComponent.class);
@@ -193,13 +192,18 @@ public class PlayLogic {
             }
         });
 
-        new Thread(() -> {
-            try {
-                gameClient.connect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        gameClient.sendTCP(new Network.ClientReady());
+    }
+
+    private String getBodyHexColour(int catIndex) {
+        if (catIndex + 1 == 1) {
+            return "ffeedb";
+        }
+        else if (catIndex + 1 == 2) {
+            return "2b1803";
+        }
+        // add on for other cat
+        return "ffeedb";
     }
 
     private void createMapBounds() {
@@ -223,7 +227,7 @@ public class PlayLogic {
         shape.dispose();
     }
 
-    private Entity spawnPlayer(float startX, float startY, String hexColor, int startingScore) {
+    private Entity spawnPlayer(float startX, float startY, String hexColor, String playerName) {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
@@ -236,7 +240,8 @@ public class PlayLogic {
         player.add(sizeComp);
 
         PlayerComponent playerComp = engine.createComponent(PlayerComponent.class);
-        playerComp.score = startingScore;
+        playerComp.score = 0;
+        playerComp.name = playerName;
         playerComp.networkID = -1; // Default to -1 until connected
         player.add(playerComp);
 
@@ -272,7 +277,7 @@ public class PlayLogic {
         return player;
     }
 
-    private Entity spawnOpponent(int networkId, float startX, float startY, String hexColor) {
+    private Entity spawnOpponent(int networkId, float startX, float startY, String hexColor, int catIndex, String name) {
         Entity opponent = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
@@ -286,6 +291,7 @@ public class PlayLogic {
 
         OpponentComponent opponentComp = engine.createComponent(OpponentComponent.class);
         opponentComp.networkId = networkId;
+        opponentComp.name = name;
         opponent.add(opponentComp);
 
         CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
@@ -313,7 +319,7 @@ public class PlayLogic {
         opponent.add(physicsComponent);
 
         TextureComponent texComp = engine.createComponent(TextureComponent.class);
-        texComp.texture = catHeadTexture;
+        texComp.texture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
         opponent.add(texComp);
 
         engine.addEntity(opponent);
@@ -383,13 +389,13 @@ public class PlayLogic {
         return player;
     }
 
-    public World getWorld() {
-        return world;
-    }
-
     public boolean isPlayerDead() {
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
         return pComp == null || pComp.isDead;
+    }
+
+    public boolean hasPlayerWon() {
+        return hadOpponents && otherPlayers.isEmpty() && !isPlayerDead();
     }
 
     public void dispose() {
