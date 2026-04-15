@@ -1,10 +1,10 @@
 package com.tdt4240Grp04.clashofclaws.states;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
+import com.tdt4240Grp04.clashofclaws.network.GameClient;
 
 public class PlayState extends State {
     private PlayLogic playLogic;
@@ -12,10 +12,10 @@ public class PlayState extends State {
     private PlayController playController;
     private FirebaseSDK firebase;
 
-    public PlayState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
+    public PlayState(StateManager gsm, FirebaseSDK firebase, GameClient gameClient, String name, int catIndex) {
         super(gsm);
         this.firebase = firebase;
-        playLogic = new PlayLogic(name, catIndex);
+        playLogic = new PlayLogic(gameClient, name, catIndex);
         playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
         playController = new PlayController(playLogic.getPlayer(), playView.getStage(), playView.getSkin());
 

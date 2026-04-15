@@ -17,7 +17,7 @@ public class GameClient {
         this.serverIp = serverIp;
         this.tcpPort = tcpPort;
         this.udpPort = udpPort;
-        client = new Client();
+        client = new Client(16384, 16384);
 
         Network.register(client);
     }

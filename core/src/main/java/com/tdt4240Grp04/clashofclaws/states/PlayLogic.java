@@ -3,6 +3,7 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
@@ -46,18 +47,13 @@ public class PlayLogic {
 
     private final float MAP_WIDTH = 200f;
     private final float MAP_HEIGHT = 200f;
-    public PlayLogic(String name, int catIndex) {
+    public PlayLogic(GameClient gameClient, String name, int catIndex) {
+        this.gameClient = gameClient;
         engine = new Engine();
         world = new World(new Vector2(0, 0), true);
         kibbleTexture = new Texture(Gdx.files.internal("kibble.png"));
         catHeadTexture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
         otherPlayers = new HashMap<>();
-
-        // For when the server is run on local device
-        //gameClient = new GameClient("10.0.2.2", 54555, 54777);
-
-        // Remote Azure server
-        gameClient = new GameClient("20.251.119.106", 54555, 54777);
 
         world.setContactListener(new CollisionListener(engine, gameClient));
 
@@ -68,17 +64,18 @@ public class PlayLogic {
 
         createMapBounds();
 
-        player = spawnPlayer(MAP_WIDTH / 2f, MAP_HEIGHT / 2f, getBodyHexColour(catIndex), name);
+        float startX = (float) (Math.random() * (MAP_WIDTH - 20f)) + 10f;
+        float startY = (float) (Math.random() * (MAP_HEIGHT - 20f)) + 10f;
+        player = spawnPlayer(startX, startY, getBodyHexColour(catIndex), name);
+
+
+        PlayerComponent pComp = player.getComponent(PlayerComponent.class);
+        if (pComp != null) {
+            pComp.networkID = gameClient.getClient().getID();
+        }
+
 
         gameClient.getClient().addListener(new Listener() {
-            @Override
-            public void connected(Connection connection) {
-                PlayerComponent pComp = player.getComponent(PlayerComponent.class);
-                if (pComp != null) {
-                    pComp.networkID = connection.getID();
-                }
-            }
-
             public void received(Connection connection, Object object) {
                 if (object instanceof Network.PlayerConnected) {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
@@ -195,13 +192,7 @@ public class PlayLogic {
             }
         });
 
-        new Thread(() -> {
-            try {
-                gameClient.connect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        gameClient.sendTCP(new Network.ClientReady());
     }
 
     private String getBodyHexColour(int catIndex) {

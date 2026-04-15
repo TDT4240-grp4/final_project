@@ -17,8 +17,24 @@ public class Network {
         kryo.register(KibbleEaten.class);
         kryo.register(ArrayList.class);
         kryo.register(CatDefeated.class);
-
+        kryo.register(JoinLobby.class);
+        kryo.register(LobbyUpdate.class);
+        kryo.register(GameStart.class);
+        kryo.register(ClientReady.class);
     }
+
+    public static class JoinLobby {
+        public String name;
+        public int catIndex;
+    }
+
+    public static class LobbyUpdate {
+        public int currentPlayers;
+    }
+
+    public static class GameStart { }
+
+    public static class ClientReady { }
 
     public static class KibbleData {
         public int id;
