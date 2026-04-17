@@ -28,6 +28,7 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.CatBodySystem;
+import com.tdt4240Grp04.clashofclaws.ecs.systems.DashSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PhysicsSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.RemovalSystem;
@@ -61,6 +62,7 @@ public class PlayLogic {
 
         world.setContactListener(new CollisionListener(engine, gameClient));
 
+        engine.addSystem(new DashSystem());
         engine.addSystem(new MovementSystem());
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new RemovalSystem(world));
