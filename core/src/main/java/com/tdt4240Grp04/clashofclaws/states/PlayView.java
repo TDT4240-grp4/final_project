@@ -23,9 +23,12 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PlayView {
     private Engine engine;
@@ -39,13 +42,14 @@ public class PlayView {
 
     private Stage stage;
     private Label scoreLabel;
-    private Label coordinatesLabel;
+    private Label staminaLabel;
+    private Table leaderboardTable;
     private HashMap<Entity, Label> nameLabels;
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
 
-    public PlayView(Engine engine,  Entity player) {
+    public PlayView(Engine engine, Entity player) {
         this.engine = engine;
         this.player = player;
         this.shapeRenderer = new ShapeRenderer();
@@ -62,19 +66,20 @@ public class PlayView {
 
         scoreLabel = new Label("Score: 0", skin);
         scoreLabel.setFontScale(1f);
-        table.add(scoreLabel).padLeft(20).padTop(20);
+        table.add(scoreLabel).padLeft(20).padTop(20).row();
+
+        staminaLabel = new Label("Stamina: 100%", skin);
+        staminaLabel.setFontScale(0.8f);
+        table.add(staminaLabel).padLeft(20).padTop(5);
 
         stage.addActor(table);
 
-        Table coordinatesTable = new Table();
-        coordinatesTable.bottom().right();
-        coordinatesTable.setFillParent(true);
+        // Leaderboard — top right
+        leaderboardTable = new Table();
+        leaderboardTable.top().right();
+        leaderboardTable.setFillParent(true);
+        stage.addActor(leaderboardTable);
 
-        coordinatesLabel = new Label("X: 0 Y: 0", skin);
-        coordinatesTable.add(coordinatesLabel).padRight(20).padBottom(20);
-        stage.addActor(coordinatesTable);
-
-        PlayerComponent pComp = player.getComponent(PlayerComponent.class);
         nameLabels = new HashMap<>();
     }
 
@@ -165,9 +170,42 @@ public class PlayView {
         if (pc != null) {
             scoreLabel.setText("Score: " + pc.score);
         }
-        PhysicsComponent playerPhysForLabel = PhysicsComponent.MAPPER.get(player);
-        if (playerPhysForLabel != null && playerPhysForLabel.body != null) {
-            coordinatesLabel.setText(String.format("X: %.2f Y: %.2f", playerPhysForLabel.body.getPosition().x, playerPhysForLabel.body.getPosition().y));
+
+        // Update stamina label
+        StaminaComponent stamina = StaminaComponent.MAPPER.get(player);
+        if (stamina != null) {
+            int pct = (int)((stamina.currentStamina / stamina.maxStamina) * 100);
+            staminaLabel.setText("Stamina: " + pct + "%");
+            staminaLabel.setColor(pct > 50 ? Color.GREEN : pct > 20 ? Color.YELLOW : Color.RED);
+        }
+
+        // Update leaderboard
+        leaderboardTable.clear();
+        leaderboardTable.add(new Label("-- Leaderboard --", skin)).padTop(20).padRight(20).row();
+
+        // Collect all player/opponent (name, score) pairs
+        List<String[]> entries = new ArrayList<>();
+        PlayerComponent myComp = player.getComponent(PlayerComponent.class);
+        if (myComp != null) {
+            entries.add(new String[]{myComp.name + " (you)", String.valueOf(myComp.score), "me"});
+        }
+        for (Entity e : engine.getEntitiesFor(Family.all(OpponentComponent.class).get())) {
+            OpponentComponent opp = e.getComponent(OpponentComponent.class);
+            if (opp != null) {
+                entries.add(new String[]{opp.name, String.valueOf(opp.score), "opp"});
+            }
+        }
+
+        // Sort by score descending
+        entries.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
+
+        // Add rows
+        for (int i = 0; i < entries.size(); i++) {
+            String[] entry = entries.get(i);
+            Label row = new Label((i + 1) + ". " + entry[0] + "  " + entry[1], skin);
+            row.setFontScale(0.8f);
+            if ("me".equals(entry[2])) row.setColor(Color.CYAN);
+            leaderboardTable.add(row).padRight(20).row();
         }
 
         for (Entity e : engine.getEntitiesFor(Family.one(PlayerComponent.class, OpponentComponent.class).get())) {
