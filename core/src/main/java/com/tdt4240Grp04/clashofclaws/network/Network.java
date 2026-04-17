@@ -21,11 +21,28 @@ public class Network {
         kryo.register(LobbyUpdate.class);
         kryo.register(GameStart.class);
         kryo.register(ClientReady.class);
+        kryo.register(CreateRoom.class);
+        kryo.register(RoomJoined.class);
+        kryo.register(RoomError.class);
     }
 
     public static class JoinLobby {
         public String name;
         public int catIndex;
+        public String roomCode; // null = public matchmaking
+    }
+
+    public static class CreateRoom {
+        public String name;
+        public int catIndex;
+    }
+
+    public static class RoomJoined {
+        public String roomCode;
+    }
+
+    public static class RoomError {
+        public String message;
     }
 
     public static class LobbyUpdate {
