@@ -38,11 +38,11 @@ public class Network {
     }
 
     public static class RoomJoined {
-        public String roomCode;
+        public String roomCode; // server sends back the generated or matched code
     }
 
     public static class RoomError {
-        public String message;
+        public String message; // e.g. "Room not found"
     }
 
     public static class LobbyUpdate {
