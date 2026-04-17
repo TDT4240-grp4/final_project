@@ -12,6 +12,7 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
@@ -26,6 +27,7 @@ public class CollisionListener implements ContactListener {
     private ComponentMapper<PlayerComponent> pcm = ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<CatBodyComponent> cbcm = ComponentMapper.getFor(CatBodyComponent.class);
     private ComponentMapper<OpponentComponent> ocm = ComponentMapper.getFor(OpponentComponent.class);
+    private ComponentMapper<SizeComponent> scm = ComponentMapper.getFor(SizeComponent.class);
 
     public CollisionListener(Engine engine, GameClient gameClient) {
         this.engine = engine;
@@ -101,7 +103,8 @@ public class CollisionListener implements ContactListener {
 
         CatBodyComponent body = cbcm.get(cat);
         if (body != null) {
-            body.maxLength += 5;
+            SizeComponent sizeComp = scm.get(cat);
+            body.maxLength += (sizeComp != null) ? sizeComp.growthRate : 5;
         }
 
         addCatScore(cat, 10);

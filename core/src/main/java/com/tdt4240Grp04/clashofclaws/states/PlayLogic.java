@@ -15,8 +15,11 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.tdt4240Grp04.clashofclaws.config.GameConfig;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
@@ -67,7 +70,7 @@ public class PlayLogic {
 
         float startX = (float) (Math.random() * (MAP_WIDTH - 20f)) + 10f;
         float startY = (float) (Math.random() * (MAP_HEIGHT - 20f)) + 10f;
-        player = spawnPlayer(startX, startY, getBodyHexColour(catIndex), name);
+        player = spawnPlayer(startX, startY, getBodyHexColour(catIndex), name, catIndex);
 
 
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
@@ -131,7 +134,8 @@ public class PlayLogic {
                         if (eater != null) {
                             CatBodyComponent body = eater.getComponent(CatBodyComponent.class);
                             if (body != null) {
-                                body.maxLength += 5;
+                                SizeComponent sizeComp = eater.getComponent(SizeComponent.class);
+                                body.maxLength += (sizeComp != null) ? sizeComp.growthRate : 5;
                             }
                         }
 
@@ -227,16 +231,32 @@ public class PlayLogic {
         shape.dispose();
     }
 
-    private Entity spawnPlayer(float startX, float startY, String hexColor, String playerName) {
+    private Entity spawnPlayer(float startX, float startY, String hexColor, String playerName, int catIndex) {
         Entity player = engine.createEntity();
 
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
         charComp.x = startX;
         charComp.y = startY;
-        charComp.speed = 10f;
+        charComp.speed = GameConfig.getMaxSpeed(catIndex);
+        charComp.speedMultiplier = 1.0f;
         player.add(charComp);
 
+        CatTypeComponent catTypeComp = engine.createComponent(CatTypeComponent.class);
+        catTypeComp.catIndex = catIndex;
+        catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
+        catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
+        catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
+        player.add(catTypeComp);
+
+        StaminaComponent staminaComp = engine.createComponent(StaminaComponent.class);
+        staminaComp.maxStamina = GameConfig.getMaxStamina(catIndex);
+        staminaComp.currentStamina = staminaComp.maxStamina;
+        staminaComp.drainRate = GameConfig.getDrainRate(catIndex);
+        staminaComp.rechargeRate = GameConfig.getRechargeRate(catIndex);
+        player.add(staminaComp);
+
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
+        sizeComp.growthRate = GameConfig.getGrowthRate(catIndex);
         player.add(sizeComp);
 
         PlayerComponent playerComp = engine.createComponent(PlayerComponent.class);
@@ -283,10 +303,19 @@ public class PlayLogic {
         CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
         charComp.x = startX;
         charComp.y = startY;
-        charComp.speed = 10f;
+        charComp.speed = GameConfig.getMaxSpeed(catIndex);
+        charComp.speedMultiplier = 1.0f;
         opponent.add(charComp);
 
+        CatTypeComponent catTypeComp = engine.createComponent(CatTypeComponent.class);
+        catTypeComp.catIndex = catIndex;
+        catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
+        catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
+        catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
+        opponent.add(catTypeComp);
+
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
+        sizeComp.growthRate = GameConfig.getGrowthRate(catIndex);
         opponent.add(sizeComp);
 
         OpponentComponent opponentComp = engine.createComponent(OpponentComponent.class);
