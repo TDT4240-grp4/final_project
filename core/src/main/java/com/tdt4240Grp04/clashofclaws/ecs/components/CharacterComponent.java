@@ -7,6 +7,7 @@ public class CharacterComponent implements Component {
     public float x, y;
     public float speed;
     public float dirX, dirY;
+    public float speedMultiplier = 1.0f;
 
     public static final ComponentMapper<CharacterComponent> MAPPER
         = ComponentMapper.getFor(CharacterComponent.class);
