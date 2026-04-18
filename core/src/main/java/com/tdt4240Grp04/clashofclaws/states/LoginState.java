@@ -11,7 +11,9 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.audio.Music;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
+import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 
 public class LoginState extends State {
     private Stage stage;
@@ -113,6 +115,9 @@ public class LoginState extends State {
                 gsm.set(new SettingsState(gsm, firebase));
             }
         });
+
+        Music music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
+        AudioManager.getInstance().playMusic(music);
     }
 
     /**

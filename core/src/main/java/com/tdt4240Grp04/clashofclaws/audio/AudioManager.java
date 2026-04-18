@@ -27,7 +27,7 @@ public class AudioManager {
         soundEnabled = prefs.getBoolean(KEY_SOUND, true);
         soundVolume  = prefs.getFloat(KEY_SVOL, 1.0f);
         musicEnabled = prefs.getBoolean(KEY_MUSIC, true);
-        musicVolume  = prefs.getFloat(KEY_MVOL, 0.8f);
+        musicVolume  = prefs.getFloat(KEY_MVOL, 0.2f);
     }
 
     public static AudioManager getInstance() {
