@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameServer {
-    private static final int MAX_ROOM_PLAYERS = 2;
+    private static final int MAX_PLAYERS = 6;
+    private static final int MIN_PLAYERS_TO_START = 2;
 
     private static ConcurrentHashMap<Integer, Network.PlayerConnected> players = new ConcurrentHashMap<>();
 
@@ -62,9 +63,7 @@ public class GameServer {
                         response.roomCode = code;
                         server.sendToTCP(connection.getID(), response);
 
-                        Network.LobbyUpdate update = new Network.LobbyUpdate();
-                        update.currentPlayers = 1;
-                        server.sendToTCP(connection.getID(), update);
+                        broadcastLobbyUpdate(room);
                         System.out.println("Room created: " + code);
                     }
 
@@ -75,36 +74,61 @@ public class GameServer {
 
                         if (msg.roomCode != null && !msg.roomCode.isEmpty()) {
                             // Private room join
-                            List<Connection> room = rooms.get(msg.roomCode.toUpperCase());
+                            String code = msg.roomCode.toUpperCase();
+                            List<Connection> room = rooms.get(code);
                             if (room == null) {
                                 Network.RoomError err = new Network.RoomError();
                                 err.message = "Room not found: " + msg.roomCode;
                                 server.sendToTCP(connection.getID(), err);
                                 return;
                             }
+                            if (room.size() >= MAX_PLAYERS) {
+                                Network.RoomError err = new Network.RoomError();
+                                err.message = "Room is full (max " + MAX_PLAYERS + ")";
+                                server.sendToTCP(connection.getID(), err);
+                                return;
+                            }
                             room.add(connection);
-                            playerRooms.put(connection.getID(), msg.roomCode.toUpperCase());
+                            playerRooms.put(connection.getID(), code);
 
                             Network.RoomJoined joined = new Network.RoomJoined();
-                            joined.roomCode = msg.roomCode.toUpperCase();
+                            joined.roomCode = code;
                             server.sendToTCP(connection.getID(), joined);
 
                             broadcastLobbyUpdate(room);
-                            if (room.size() >= MAX_ROOM_PLAYERS) startGame(msg.roomCode.toUpperCase(), room);
+                            if (room.size() >= MAX_PLAYERS) startGame(code, room);
                         } else {
-                            // Public matchmaking
+                            // Public matchmaking — join shared queue, start when MIN reached
                             synchronized (publicQueue) {
+                                if (publicQueue.size() >= MAX_PLAYERS) {
+                                    // Queue full, reject until current batch starts
+                                    Network.RoomError err = new Network.RoomError();
+                                    err.message = "Queue full, please wait...";
+                                    server.sendToTCP(connection.getID(), err);
+                                    return;
+                                }
                                 publicQueue.add(connection);
                                 broadcastPublicLobbyUpdate();
-                                if (publicQueue.size() >= MAX_ROOM_PLAYERS) {
-                                    List<Connection> gameRoom = new ArrayList<>(publicQueue);
-                                    publicQueue.clear();
+                                if (publicQueue.size() >= MIN_PLAYERS_TO_START) {
+                                    int count = Math.min(publicQueue.size(), MAX_PLAYERS);
+                                    List<Connection> gameRoom = new ArrayList<>(publicQueue.subList(0, count));
+                                    for (int i = 0; i < count; i++) publicQueue.remove(0);
                                     String code = generateRoomCode();
                                     rooms.put(code, gameRoom);
                                     for (Connection c : gameRoom) playerRooms.put(c.getID(), code);
                                     startGame(code, gameRoom);
                                 }
                             }
+                        }
+                    }
+
+                    else if (object instanceof Network.RequestStartGame) {
+                        // Host requests early start for private room (min 2 players required)
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
+                        List<Connection> room = rooms.get(roomCode);
+                        if (room != null && room.size() >= MIN_PLAYERS_TO_START) {
+                            startGame(roomCode, room);
                         }
                     }
 
@@ -245,12 +269,14 @@ public class GameServer {
     private static void broadcastLobbyUpdate(List<Connection> room) {
         Network.LobbyUpdate update = new Network.LobbyUpdate();
         update.currentPlayers = room.size();
+        update.maxPlayers = MAX_PLAYERS;
         for (Connection c : room) server.sendToTCP(c.getID(), update);
     }
 
     private static void broadcastPublicLobbyUpdate() {
         Network.LobbyUpdate update = new Network.LobbyUpdate();
         update.currentPlayers = publicQueue.size();
+        update.maxPlayers = MAX_PLAYERS;
         for (Connection c : publicQueue) server.sendToTCP(c.getID(), update);
     }
 

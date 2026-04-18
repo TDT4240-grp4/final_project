@@ -24,6 +24,7 @@ public class Network {
         kryo.register(CreateRoom.class);
         kryo.register(RoomJoined.class);
         kryo.register(RoomError.class);
+        kryo.register(RequestStartGame.class);
     }
 
     public static class JoinLobby {
@@ -47,11 +48,14 @@ public class Network {
 
     public static class LobbyUpdate {
         public int currentPlayers;
+        public int maxPlayers;
     }
 
     public static class GameStart { }
 
     public static class ClientReady { }
+
+    public static class RequestStartGame { } // host requests early start (private rooms)
 
     public static class KibbleData {
         public int id;
