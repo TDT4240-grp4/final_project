@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -28,6 +29,7 @@ import com.tdt4240Grp04.clashofclaws.ecs.systems.DashSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PhysicsSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.RemovalSystem;
+import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.listeners.CollisionListener;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 import com.tdt4240Grp04.clashofclaws.network.Network;
@@ -42,6 +44,8 @@ public class PlayLogic {
     private World world;
     private Texture kibbleTexture;
     private Texture catHeadTexture;
+    private Sound eatSound;
+    private Sound dieSound;
     private EntityFactory entityFactory;
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
@@ -58,9 +62,11 @@ public class PlayLogic {
         world = new World(new Vector2(0, 0), true);
         kibbleTexture = new Texture(Gdx.files.internal("kibble.png"));
         catHeadTexture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
+        eatSound = Gdx.audio.newSound(Gdx.files.internal("eat.mp3"));
+        dieSound = Gdx.audio.newSound(Gdx.files.internal("die.mp3"));
         otherPlayers = new HashMap<>();
 
-        world.setContactListener(new CollisionListener(engine, gameClient));
+        world.setContactListener(new CollisionListener(engine, gameClient, eatSound));
 
         engine.addSystem(new DashSystem());
         engine.addSystem(new MovementSystem());
@@ -165,6 +171,7 @@ public class PlayLogic {
                             if (pComp != null) {
                                 loserScore = pComp.score;
                                 pComp.isDead = true;
+                                AudioManager.getInstance().playSound(dieSound);
                                 Gdx.app.log(TAG, "2222222222");
                             }
                         } else {
@@ -279,6 +286,8 @@ public class PlayLogic {
         }
         kibbleTexture.dispose();
         catHeadTexture.dispose();
+        eatSound.dispose();
+        dieSound.dispose();
         world.dispose();
         gameClient.disconnect();
     }
