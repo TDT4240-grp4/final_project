@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -132,6 +133,8 @@ public class CollisionListener implements ContactListener {
         Gdx.app.log("Collision", "Cat-Cat collision detected between two cats with scores " + scoreA + " and " + scoreB);
 
         if (isAHead && !isBHead) {
+            // Only lethal if A's head is moving toward B (front hit), not a side swipe
+            if (!isHeadMovingToward(fixtureA, fixtureB)) return;
             Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Body)");
             if (tryAbsorbWithShield(catA)) return;
             setCatDead(catA);
@@ -142,6 +145,8 @@ public class CollisionListener implements ContactListener {
                 gameClient.sendTCP(msg);
             }
         } else if (!isAHead && isBHead) {
+            // Only lethal if B's head is moving toward A (front hit), not a side swipe
+            if (!isHeadMovingToward(fixtureB, fixtureA)) return;
             Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Body)");
             if (tryAbsorbWithShield(catB)) return;
             setCatDead(catB);
@@ -191,6 +196,17 @@ public class CollisionListener implements ContactListener {
                 }
             }
         }
+    }
+
+    // Returns true if the head fixture's velocity points toward the target fixture.
+    // This distinguishes a frontal head strike from an opponent's body swiping the head's side.
+    private boolean isHeadMovingToward(Fixture headFixture, Fixture targetFixture) {
+        Vector2 vel = headFixture.getBody().getLinearVelocity();
+        Vector2 headPos = headFixture.getBody().getPosition();
+        Vector2 targetPos = targetFixture.getBody().getPosition();
+        float dx = targetPos.x - headPos.x;
+        float dy = targetPos.y - headPos.y;
+        return vel.dot(dx, dy) > 0;
     }
 
     private boolean tryAbsorbWithShield(Entity e) {
