@@ -46,6 +46,8 @@ public class PlayLogic {
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
     private boolean hadOpponents = false;
+    private int killCount = 0;
+    private float survivalSeconds = 0f;
     private Listener networkListener;
 
     private final float MAP_WIDTH = 200f;
@@ -154,6 +156,7 @@ public class PlayLogic {
                         int myId = (pComp != null) ? pComp.networkID : -1;
 
                         int loserScore = 0;
+                        if (msg.winnerId == myId) killCount++;
                         Gdx.app.log(TAG, "1111111111111111111");
 
                         // 1. Handle Loser
@@ -236,6 +239,7 @@ public class PlayLogic {
     }
 
     public void update(float dt) {
+        if (!isPlayerDead()) survivalSeconds += dt;
         world.step(1/60f, 6, 2);
         engine.update(dt);
 
@@ -277,5 +281,16 @@ public class PlayLogic {
         catHeadTexture.dispose();
         world.dispose();
         gameClient.disconnect();
+    }
+
+    public int getKillCount()        { return killCount; }
+    public float getSurvivalSeconds() { return survivalSeconds; }
+    public int getScore() {
+        PlayerComponent pc = player.getComponent(PlayerComponent.class);
+        return pc != null ? pc.score : 0;
+    }
+    public int getKibbleCount() {
+        PlayerComponent pc = player.getComponent(PlayerComponent.class);
+        return pc != null ? pc.kibbleCount : 0;
     }
 }
