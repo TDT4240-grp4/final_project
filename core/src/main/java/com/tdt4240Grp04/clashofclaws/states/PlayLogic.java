@@ -168,45 +168,40 @@ public class PlayLogic {
                         int myId = (pComp != null) ? pComp.networkID : -1;
 
                         int loserScore = 0;
+                        int loserBodyLength = 0;
                         if (msg.winnerId == myId) killCount++;
-                        Gdx.app.log(TAG, "1111111111111111111");
 
                         // 1. Handle Loser
                         if (msg.loserId == myId) {
-                            // I am the loser
                             if (pComp != null) {
                                 loserScore = pComp.score;
                                 pComp.isDead = true;
-                                Gdx.app.log(TAG, "2222222222");
                             }
+                            CatBodyComponent loserBody = player.getComponent(CatBodyComponent.class);
+                            if (loserBody != null) loserBodyLength = loserBody.maxLength;
                         } else {
-                            // Opponent is the loser
                             Entity loser = otherPlayers.get(msg.loserId);
                             if (loser != null) {
                                 OpponentComponent oppComp = loser.getComponent(OpponentComponent.class);
-                                if (oppComp != null) {
-                                    loserScore = oppComp.score;
-                                    Gdx.app.log(TAG, "33333333");
-                                }
+                                if (oppComp != null) loserScore = oppComp.score;
+                                CatBodyComponent loserBody = loser.getComponent(CatBodyComponent.class);
+                                if (loserBody != null) loserBodyLength = loserBody.maxLength;
                                 loser.add(engine.createComponent(MarkedForRemovalComponent.class));
                                 otherPlayers.remove(msg.loserId);
                             }
                         }
 
                         if (msg.winnerId == myId) {
-                            // I am the winner
-                            if (pComp != null) {
-                                pComp.score += loserScore;
-                                Gdx.app.log(TAG, "4444444444444");
-                            }
+                            if (pComp != null) pComp.score += loserScore;
+                            CatBodyComponent winnerBody = player.getComponent(CatBodyComponent.class);
+                            if (winnerBody != null) winnerBody.maxLength += loserBodyLength;
                         } else {
                             Entity winner = otherPlayers.get(msg.winnerId);
                             if (winner != null) {
                                 OpponentComponent oppComp = winner.getComponent(OpponentComponent.class);
-                                if (oppComp != null) {
-                                    oppComp.score += loserScore;
-                                    Gdx.app.log(TAG, "5555555555");
-                                }
+                                if (oppComp != null) oppComp.score += loserScore;
+                                CatBodyComponent winnerBody = winner.getComponent(CatBodyComponent.class);
+                                if (winnerBody != null) winnerBody.maxLength += loserBodyLength;
                             }
                         }
                     });
@@ -263,7 +258,7 @@ public class PlayLogic {
 
     public void update(float dt) {
         if (!isPlayerDead()) survivalSeconds += dt;
-        world.step(1/60f, 6, 2);
+        world.step(Math.min(dt, 1f / 30f), 6, 2);
         engine.update(dt);
 
         PhysicsComponent physComp = player.getComponent(PhysicsComponent.class);
