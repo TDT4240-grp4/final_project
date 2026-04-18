@@ -34,35 +34,38 @@ public class LoginState extends State {
         TextButton.TextButtonStyle primaryBtnStyle = createButtonStyle(Color.valueOf("1ca1e4"), Color.WHITE);
         TextButton.TextButtonStyle secondaryBtnStyle = createButtonStyle(Color.valueOf("85d6ff"), Color.BLACK);
 
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+
         Table mainTable = new Table();
         mainTable.setFillParent(true);
 
-        // --- LEFT SIDE ---
+        // --- LEFT SIDE: title + cat ---
         Table leftTable = new Table();
-        leftTable.add(new Image(titleTexture)).size(600, 200).padBottom(20).row();
-        leftTable.add(new Image(angryCatTexture)).size(400, 400);
+        leftTable.add(new Image(titleTexture)).width(W * 0.38f).height(H * 0.18f).padBottom(12).row();
+        leftTable.add(new Image(angryCatTexture)).size(H * 0.52f);
 
         // --- RIGHT SIDE ---
         Table rightTable = new Table();
 
-// --- Join Friend Box ---
+        // Join Friend Box
         Table joinBox = new Table();
-        joinBox.setBackground(skin.newDrawable("white", Color.WHITE)); // The big white container
-        joinBox.pad(30);
+        joinBox.setBackground(skin.newDrawable("white", Color.WHITE));
+        joinBox.pad(16);
 
         Label joinLabel = new Label("JOIN A FRIEND'S ROOM", skin);
         joinLabel.setColor(Color.BLACK);
+        joinLabel.setFontScale(0.55f);
 
-// Create the blue row that holds BOTH the code and the arrow
         Table blueRow = new Table();
-        blueRow.setBackground(skin.newDrawable("white", Color.valueOf("1ca1e4"))); // Blue background for the row
-        blueRow.pad(5); // Padding so the code field doesn't touch the blue edges
+        blueRow.setBackground(skin.newDrawable("white", Color.valueOf("1ca1e4")));
+        blueRow.pad(4);
 
         TextField codeField = new TextField("", skin);
         codeField.setMessageText("ROOM CODE");
-// IMPORTANT: We set the background of the field to NULL so the blueRow shows through
         codeField.getStyle().background = null;
         codeField.getStyle().fontColor = Color.WHITE;
+        codeField.getStyle().font.getData().setScale(0.55f);
 
         TextButton arrowBtn = new TextButton("->", skin);
         arrowBtn.getStyle().up = null;
@@ -78,48 +81,42 @@ public class LoginState extends State {
             }
         });
 
-// Add field and arrow to the BLUE ROW
-// Increased width to 350 so "ROOM CODE" is fully visible
-        blueRow.add(codeField).width(350).height(60).padLeft(10);
-        blueRow.add(arrowBtn).size(60, 60);
+        float btnW = W * 0.28f;
+        float btnH = H * 0.1f;
 
-// Add everything to the white JOIN BOX
-        joinBox.add(joinLabel).padBottom(20).row();
-        joinBox.add(blueRow).width(420).height(70); // Fixed size for the blue bar
+        blueRow.add(codeField).width(btnW * 0.8f).height(btnH).padLeft(8);
+        blueRow.add(arrowBtn).size(btnH, btnH);
 
-        // Main Buttons
+        joinBox.add(joinLabel).padBottom(10).row();
+        joinBox.add(blueRow).width(btnW * 1.1f).height(btnH + 8);
+
         TextButton playBtn = new TextButton("PLAY", primaryBtnStyle);
         TextButton howToPlayBtn = new TextButton("HOW TO PLAY", secondaryBtnStyle);
         TextButton settingsBtn = new TextButton("SETTINGS", secondaryBtnStyle);
 
-        // Assemble Right Table
-        rightTable.add(joinBox).padBottom(20).row();
-        rightTable.add(playBtn).width(320).height(80).padBottom(20).row();
-        rightTable.add(howToPlayBtn).width(450).height(80).padBottom(20).row();
-        rightTable.add(settingsBtn).width(450).height(80);
+        rightTable.add(joinBox).padBottom(14).row();
+        rightTable.add(playBtn).width(btnW).height(btnH).padBottom(10).row();
+        rightTable.add(howToPlayBtn).width(btnW).height(btnH).padBottom(10).row();
+        rightTable.add(settingsBtn).width(btnW).height(btnH);
 
-        mainTable.add(leftTable).expand().center().padLeft(50);
-        mainTable.add(rightTable).expand().center().padRight(50);
+        mainTable.add(leftTable).expand().center().padLeft(30);
+        mainTable.add(rightTable).expand().center().padRight(30);
         stage.addActor(mainTable);
 
-        // --- LISTENERS ---
         playBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
+            @Override public void changed(ChangeEvent event, Actor actor) {
                 gsm.set(new CharacterSelectionState(gsm, firebase));
             }
         });
 
         howToPlayBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
+            @Override public void changed(ChangeEvent event, Actor actor) {
                 gsm.set(new HowToPlayState(gsm, firebase));
             }
         });
 
         settingsBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
+            @Override public void changed(ChangeEvent event, Actor actor) {
                 gsm.set(new SettingsState(gsm, firebase));
             }
         });
@@ -131,11 +128,13 @@ public class LoginState extends State {
      */
     private TextButton.TextButtonStyle createButtonStyle(Color baseColor, Color fontColor) {
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.font = skin.getFont("ComicConSans");
+        com.badlogic.gdx.graphics.g2d.BitmapFont font = skin.getFont("ComicConSans");
+        font.getData().setScale(0.55f);
+        style.font = font;
         style.fontColor = fontColor;
         style.up = skin.newDrawable("white", baseColor);
-        style.down = skin.newDrawable("white", baseColor.cpy().mul(0.8f)); // Automatically makes click darker
-        style.over = skin.newDrawable("white", baseColor.cpy().mul(1.1f)); // Automatically makes hover lighter
+        style.down = skin.newDrawable("white", baseColor.cpy().mul(0.8f));
+        style.over = skin.newDrawable("white", baseColor.cpy().mul(1.1f));
         return style;
     }
 

@@ -80,22 +80,26 @@ public class PlayView {
 
         stage = new Stage(uiViewport);
 
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+        float uiScale = W / 1280f; // scale relative to reference 1280px width
+
         Table table = new Table();
         table.top().left();
         table.setFillParent(true);
 
         scoreLabel = new Label("Score: 0", skin);
-        scoreLabel.setFontScale(1f);
-        table.add(scoreLabel).padLeft(20).padTop(20).row();
+        scoreLabel.setFontScale(0.55f * uiScale);
+        table.add(scoreLabel).padLeft(W * 0.015f).padTop(H * 0.025f).row();
 
         staminaLabel = new Label("Stamina: 100%", skin);
-        staminaLabel.setFontScale(0.8f);
-        table.add(staminaLabel).padLeft(20).padTop(5).row();
+        staminaLabel.setFontScale(0.45f * uiScale);
+        table.add(staminaLabel).padLeft(W * 0.015f).padTop(H * 0.008f).row();
 
         powerupLabel = new Label("", skin);
-        powerupLabel.setFontScale(0.8f);
+        powerupLabel.setFontScale(0.45f * uiScale);
         powerupLabel.setColor(Color.YELLOW);
-        table.add(powerupLabel).padLeft(20).padTop(5);
+        table.add(powerupLabel).padLeft(W * 0.015f).padTop(H * 0.008f);
 
         stage.addActor(table);
 
@@ -111,16 +115,19 @@ public class PlayView {
         coordsTable.bottom().right();
         coordsTable.setFillParent(true);
         coordsLabel = new Label("", skin);
-        coordsLabel.setFontScale(0.7f);
+        coordsLabel.setFontScale(0.4f * uiScale);
         coordsLabel.setColor(Color.WHITE);
-        coordsTable.add(coordsLabel).padBottom(20).padRight(20);
+        coordsTable.add(coordsLabel).padBottom(H * 0.025f).padRight(W * 0.015f);
         stage.addActor(coordsTable);
 
-        TextButton quitBtn = new TextButton("QUIT", skin);
+        // Small subtle quit — top right, below leaderboard won't work, use top-left corner
+        TextButton quitBtn = new TextButton("quit", skin);
+        quitBtn.getLabel().setFontScale(0.3f * uiScale);
+        quitBtn.setColor(new Color(0.5f, 0.5f, 0.5f, 0.6f));
         Table quitTable = new Table();
-        quitTable.bottom().left();
+        quitTable.top().left();
         quitTable.setFillParent(true);
-        quitTable.add(quitBtn).width(160).height(60).padLeft(20).padBottom(20);
+        quitTable.add(quitBtn).width(W * 0.07f).height(H * 0.05f).padLeft(W * 0.015f).padTop(H * 0.28f);
         quitBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 quitRequested = true;
@@ -302,8 +309,12 @@ public class PlayView {
         }
 
         // Update leaderboard
+        float W = Gdx.graphics.getWidth();
+        float uiScale = W / 1280f;
         leaderboardTable.clear();
-        leaderboardTable.add(new Label("-- Leaderboard --", skin)).padTop(20).padRight(20).row();
+        Label lbTitle = new Label("-- Leaderboard --", skin);
+        lbTitle.setFontScale(0.45f * uiScale);
+        leaderboardTable.add(lbTitle).padTop(20).padRight(20).row();
 
         // Collect all player/opponent (name, score, color) tuples
         List<Object[]> entries = new ArrayList<>();
@@ -325,7 +336,7 @@ public class PlayView {
         for (int i = 0; i < entries.size(); i++) {
             Object[] entry = entries.get(i);
             Label row = new Label((i + 1) + ". " + entry[0] + "  " + entry[1], skin);
-            row.setFontScale(0.8f);
+            row.setFontScale(0.4f * uiScale);
             row.setColor((Color) entry[2]);
             leaderboardTable.add(row).padRight(20).row();
         }
@@ -347,6 +358,7 @@ public class PlayView {
                 if (oComp != null && oComp.name != null) name = oComp.name;
 
                 label = new Label(name, skin);
+                label.setFontScale(0.4f * uiScale);
                 label.setColor(bodyColor(e));
                 stage.addActor(label);
                 nameLabels.put(e, label);

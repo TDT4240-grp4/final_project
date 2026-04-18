@@ -149,8 +149,11 @@ public class LobbyState extends State {
         modeTable.center();
 
         TextButton quickMatchBtn = new TextButton("Quick Match", skin);
+        quickMatchBtn.getLabel().setFontScale(0.55f);
         TextButton createRoomBtn = new TextButton("Create Private Room", skin);
+        createRoomBtn.getLabel().setFontScale(0.55f);
         TextButton joinRoomBtn = new TextButton("Join with Code", skin);
+        joinRoomBtn.getLabel().setFontScale(0.55f);
 
         quickMatchBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
@@ -187,7 +190,8 @@ public class LobbyState extends State {
             }
         });
 
-        TextButton modeBackBtn = new TextButton("BACK", skin);
+        TextButton modeBackBtn = new TextButton("Back", skin);
+        modeBackBtn.getLabel().setFontScale(0.55f);
         modeBackBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 gameClient.disconnect();
@@ -271,14 +275,25 @@ public class LobbyState extends State {
         backTable.add(backBtn).width(300).height(70);
         stage.addActor(backTable);
 
-        // Joystick — RIGHT side
+        // Joystick — bottom right, scaled to screen
+        float jSize = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.22f;
+        float knobSize = jSize * 0.42f;
+
         Touchpad.TouchpadStyle touchpadStyle = new Touchpad.TouchpadStyle();
-        touchpadStyle.background = skin.newDrawable("white", new Color(1, 1, 1, 0.2f));
-        touchpadStyle.knob = skin.newDrawable("white", Color.valueOf("1ca1e4"));
-        touchpadStyle.knob.setMinWidth(80);
-        touchpadStyle.knob.setMinHeight(80);
-        joystick = new Touchpad(10, touchpadStyle);
-        joystick.setBounds(Gdx.graphics.getWidth() - 280, 80, 200, 200);
+        // Outer ring: dark semi-transparent circle with blue border tint
+        touchpadStyle.background = skin.newDrawable("white", new Color(0.1f, 0.1f, 0.15f, 0.55f));
+        // Knob: solid blue with slight transparency
+        touchpadStyle.knob = skin.newDrawable("white", Color.valueOf("1ca1e4dd"));
+        touchpadStyle.knob.setMinWidth(knobSize);
+        touchpadStyle.knob.setMinHeight(knobSize);
+
+        joystick = new Touchpad(jSize * 0.05f, touchpadStyle);
+        joystick.setBounds(
+            Gdx.graphics.getWidth() - jSize - 24,
+            24,
+            jSize,
+            jSize
+        );
         stage.addActor(joystick);
     }
 

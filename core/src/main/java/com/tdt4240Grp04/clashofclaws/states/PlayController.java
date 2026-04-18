@@ -28,11 +28,20 @@ public class PlayController {
     public PlayController(Entity player, Stage stage, Skin skin) {
         this.player = player;
 
-        int screenW = Gdx.graphics.getWidth();
+        float screenW = Gdx.graphics.getWidth();
+        float screenH = Gdx.graphics.getHeight();
+        float jSize = Math.min(screenW, screenH) * 0.22f;
+        float knobSize = jSize * 0.42f;
 
-        // Joystick — bottom RIGHT
-        touchpad = new Touchpad(5, skin);
-        touchpad.setBounds(screenW - 300, 50, 250, 250);
+        // Joystick — bottom RIGHT, styled consistently with lobby
+        Touchpad.TouchpadStyle tpStyle = new Touchpad.TouchpadStyle();
+        tpStyle.background = skin.newDrawable("white", new Color(0.1f, 0.1f, 0.15f, 0.55f));
+        tpStyle.knob = skin.newDrawable("white", Color.valueOf("1ca1e4dd"));
+        tpStyle.knob.setMinWidth(knobSize);
+        tpStyle.knob.setMinHeight(knobSize);
+
+        touchpad = new Touchpad(jSize * 0.05f, tpStyle);
+        touchpad.setBounds(screenW - jSize - 24, 24, jSize, jSize);
         touchpad.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -54,9 +63,9 @@ public class PlayController {
         dashStyle.over = colorDrawable(new Color(0.25f, 0.55f, 1.00f, 0.95f));
 
         dashButton = new TextButton("DASH", dashStyle);
-        dashButton.getLabel().setFontScale(1.6f);
-        dashButton.setSize(200, 200);
-        dashButton.setPosition(50, 50);
+        dashButton.getLabel().setFontScale(0.7f);
+        dashButton.setSize(jSize, jSize);
+        dashButton.setPosition(24, 24);
         dashButton.addListener(new ClickListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {

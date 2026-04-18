@@ -31,16 +31,18 @@ public class SettingsState extends State {
 
         AudioManager audio = AudioManager.getInstance();
 
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+
         Table root = new Table();
         root.setFillParent(true);
         root.center();
-        root.pad(60);
+        root.pad(H * 0.05f);
 
-        // Title
         Label title = new Label("SETTINGS", skin);
-        title.setFontScale(2f);
+        title.setFontScale(0.9f);
         title.setColor(Color.valueOf("1ca1e4"));
-        root.add(title).colspan(2).padBottom(50).row();
+        root.add(title).colspan(2).padBottom(H * 0.04f).row();
 
         // Sound effects row
         TextButton soundToggle = makeToggle(audio.isSoundEnabled());
@@ -92,7 +94,8 @@ public class SettingsState extends State {
                 gsm.set(new LoginState(gsm, firebase));
             }
         });
-        root.add(backBtn).colspan(2).width(300).height(70).padTop(50);
+        backBtn.getLabel().setFontScale(0.55f);
+        root.add(backBtn).colspan(2).width(W * 0.2f).height(H * 0.1f).padTop(H * 0.04f);
 
         stage.addActor(root);
     }
@@ -130,15 +133,21 @@ public class SettingsState extends State {
     }
 
     private void addSettingRow(Table root, String labelText, TextButton toggle, Slider slider) {
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+
         Label lbl = new Label(labelText, skin);
-        lbl.setFontScale(1.1f);
+        lbl.setFontScale(0.55f);
         lbl.setColor(Color.WHITE);
 
-        Table row = new Table();
-        row.add(lbl).width(280).left();
-        row.add(toggle).width(100).height(50).padLeft(20);
-        root.add(row).colspan(2).left().padBottom(10).row();
-        root.add(slider).colspan(2).width(500).height(40).padBottom(30).row();
+        toggle.getLabel().setFontScale(0.55f);
+
+        root.add(lbl).left().padBottom(H * 0.01f).row();
+
+        Table sliderRow = new Table();
+        sliderRow.add(slider).width(W * 0.5f).height(H * 0.05f).padRight(W * 0.02f);
+        sliderRow.add(toggle).width(W * 0.08f).height(H * 0.08f);
+        root.add(sliderRow).colspan(2).left().padBottom(H * 0.03f).row();
     }
 
     @Override public void update(float dt) { stage.act(dt); }

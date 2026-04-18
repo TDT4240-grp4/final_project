@@ -52,12 +52,14 @@ public class CharacterSelectionState extends State {
 
         // 1. Title
         Label title = new Label("Kitty Selection", skin);
-        title.setFontScale(2f);
+        title.setFontScale(0.9f);
 
         ImageButton leftBtn = new ImageButton(new Image(leftPawTex).getDrawable());
         ImageButton rightBtn = new ImageButton(new Image(rightPawTex).getDrawable());
         TextButton backBtn = new TextButton("BACK", skin);
+        backBtn.getLabel().setFontScale(0.55f);
         TextButton playBtn = new TextButton("SELECT & PLAY", skin);
+        playBtn.getLabel().setFontScale(0.55f);
         playBtn.setColor(Color.valueOf("1ca1e4"));
 
         //button functions
@@ -92,22 +94,28 @@ public class CharacterSelectionState extends State {
             }
         });
 
-        //Center Row: [Left Paw] [Big Cat] [Stats List] [Right Paw]
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+        float catSize = H * 0.37f;
+        float arrowSize = H * 0.08f;
+        float btnH = H * 0.1f;
+
+        // [Left Paw] [Big Cat] [Stats] [Right Paw]
         Table centerRow = new Table();
-        centerRow.add(leftBtn).size(80).pad(20);
-        centerRow.add(bigCatDisplay).size(384, 384).pad(20);
-        centerRow.add(statsTable).width(600).pad(20);
-        centerRow.add(rightBtn).size(80).pad(20);
+        centerRow.add(leftBtn).size(arrowSize).pad(10);
+        centerRow.add(bigCatDisplay).size(catSize).pad(10);
+        centerRow.add(statsTable).width(W * 0.35f).pad(10);
+        centerRow.add(rightBtn).size(arrowSize).pad(10);
 
         Table navigationRow = new Table();
-        navigationRow.add(backBtn).width(200).height(60).pad(20);
-        navigationRow.add(playBtn).width(400).height(60).pad(20);
+        navigationRow.add(backBtn).width(W * 0.2f).height(btnH).pad(10);
+        navigationRow.add(playBtn).width(W * 0.35f).height(btnH).pad(10);
 
-        // 3. Assemble Main Table
-        mainTable.add(title).padTop(20).row();
+        // Assemble: title → [cat + stats row] → preview → nav
+        mainTable.add(title).padTop(H * 0.03f).row();
         mainTable.add(centerRow).expand().center().row();
-        mainTable.add(previewBar).padBottom(50).row(); // Small cats at the bottom
-        mainTable.add(navigationRow).padBottom(20);
+        mainTable.add(previewBar).padBottom(H * 0.01f).row();
+        mainTable.add(navigationRow).padBottom(H * 0.02f);
 
 
         stage.addActor(mainTable);
@@ -145,23 +153,27 @@ public class CharacterSelectionState extends State {
 
         Image prevCat = new Image(catTextures[prevIndex]);
         prevCat.setColor(1, 1, 1, 0.3f); // Very faded
-        previewBar.add(prevCat).size(50).padRight(30);
+        float H = Gdx.graphics.getHeight();
+        float smallCat = H * 0.04f;
+        float bigCat   = H * 0.065f;
+        previewBar.add(prevCat).size(smallCat).padRight(16);
 
         Image centerCat = new Image(catTextures[currentCatIndex]);
-        centerCat.setColor(Color.WHITE); // Bright
-        // We make this one larger to make it pop as the "Active" one
-        previewBar.add(centerCat).size(100).padLeft(10).padRight(10);
+        centerCat.setColor(Color.WHITE);
+        previewBar.add(centerCat).size(bigCat).padLeft(8).padRight(8);
 
         Image nextCat = new Image(catTextures[nextIndex]);
-        nextCat.setColor(1, 1, 1, 0.3f); // Very faded
-        previewBar.add(nextCat).size(50).padLeft(30);
+        nextCat.setColor(1, 1, 1, 0.3f);
+        previewBar.add(nextCat).size(smallCat).padLeft(16);
     }
 
     private void addStatRow(String name, int kibbleCount) {
-        statsTable.add(new Label(name, skin)).left().padRight(10);
+        Label label = new Label(name, skin);
+        label.setFontScale(0.55f);
+        statsTable.add(label).left().padRight(10);
         Table kibbleRow = new Table();
         for (int i = 0; i < kibbleCount; i++) {
-            kibbleRow.add(new Image(kibbleTexture)).width(40).height(25).padRight(5);
+            kibbleRow.add(new Image(kibbleTexture)).width(24).height(15).padRight(4);
         }
         statsTable.add(kibbleRow).left().row();
     }
