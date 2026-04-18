@@ -46,7 +46,7 @@ public class PlayController {
 
         // Dash button — bottom LEFT, styled
         TextButton.TextButtonStyle dashStyle = new TextButton.TextButtonStyle();
-        dashStyle.font = skin.getFont("default-font");
+        dashStyle.font = skin.getFont("Boogaloo-Regular");
         dashStyle.fontColor = Color.WHITE;
         dashStyle.up   = colorDrawable(new Color(0.15f, 0.45f, 0.95f, 0.9f));
         dashStyle.down = colorDrawable(new Color(0.05f, 0.25f, 0.75f, 1.0f));
