@@ -192,9 +192,9 @@ public class PlayLogic {
                         }
 
                         if (msg.winnerId == myId) {
-                            if (pComp != null) pComp.score += loserScore;
+                            if (pComp != null) pComp.score += loserScore + 100;
                             CatBodyComponent winnerBody = player.getComponent(CatBodyComponent.class);
-                            if (winnerBody != null) winnerBody.maxLength += loserBodyLength;
+                            if (winnerBody != null) winnerBody.maxLength += loserBodyLength + 20;
                         } else {
                             Entity winner = otherPlayers.get(msg.winnerId);
                             if (winner != null) {
