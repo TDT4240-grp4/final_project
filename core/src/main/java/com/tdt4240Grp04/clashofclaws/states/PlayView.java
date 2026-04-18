@@ -27,6 +27,7 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
@@ -189,6 +190,19 @@ public class PlayView {
         }
         shapeRenderer.end();
 
+        // Draw shield barrier around any cat with shieldActive
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.CYAN);
+        for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatTypeComponent.class).get())) {
+            CatTypeComponent ct = CatTypeComponent.MAPPER.get(entity);
+            if (!ct.shieldActive) continue;
+            PhysicsComponent phys = PhysicsComponent.MAPPER.get(entity);
+            float cx = phys.body.getPosition().x;
+            float cy = phys.body.getPosition().y;
+            shapeRenderer.circle(cx, cy, 0.9f, 36);
+            shapeRenderer.circle(cx, cy, 1.0f, 36);
+        }
+        shapeRenderer.end();
 
         // draw everything else, including the cat head (TextureComponent)
         batch.setProjectionMatrix(gameViewport.getCamera().combined);
@@ -220,7 +234,7 @@ public class PlayView {
                     case 3:  tex = magnetTexture; break;
                     default: continue;
                 }
-                float s = 0.5f;
+                float s = 1.5f;
                 batch.draw(tex, sp.x - s / 2, sp.y - s / 2, s, s);
             }
         }
