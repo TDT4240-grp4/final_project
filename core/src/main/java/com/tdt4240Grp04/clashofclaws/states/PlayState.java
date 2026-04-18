@@ -23,7 +23,7 @@ public class PlayState extends State {
         this.playerName = name;
         this.catIndex = catIndex;
         playLogic = new PlayLogic(gameClient, name, catIndex);
-        playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
+        playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer(), playLogic);
         playController = new PlayController(playLogic.getPlayer(), playView.getStage(), playView.getSkin());
 
         Gdx.input.setInputProcessor(playView.getStage());

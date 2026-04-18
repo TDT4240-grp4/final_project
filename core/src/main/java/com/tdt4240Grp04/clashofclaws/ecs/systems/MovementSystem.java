@@ -13,7 +13,7 @@ public class MovementSystem extends IteratingSystem {
 
     public MovementSystem() {
         super(Family.all(CharacterComponent.class, PhysicsComponent.class, PlayerComponent.class).get());
-        this.speedProvider = new DashSpeedDecorator(new BaseSpeedProvider());
+        this.speedProvider = new PowerupSpeedDecorator(new DashSpeedDecorator(new BaseSpeedProvider()));
     }
 
     @Override

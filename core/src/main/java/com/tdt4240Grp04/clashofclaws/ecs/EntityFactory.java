@@ -19,6 +19,7 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
 
 /** Creates and registers fully-configured ECS entities. */
@@ -77,6 +78,8 @@ public class EntityFactory {
         TextureComponent texComp = engine.createComponent(TextureComponent.class);
         texComp.texture = catHeadTexture;
         player.add(texComp);
+
+        player.add(engine.createComponent(PowerupComponent.class));
 
         engine.addEntity(player);
         return player;

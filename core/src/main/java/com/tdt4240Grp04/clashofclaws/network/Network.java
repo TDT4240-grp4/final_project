@@ -25,6 +25,10 @@ public class Network {
         kryo.register(RoomJoined.class);
         kryo.register(RoomError.class);
         kryo.register(RequestStartGame.class);
+        kryo.register(PowerupSpawned.class);
+        kryo.register(PowerupDespawned.class);
+        kryo.register(PowerupCollected.class);
+        kryo.register(PowerupEffect.class);
     }
 
     public static class JoinLobby {
@@ -90,5 +94,24 @@ public class Network {
     public static class CatDefeated {
         public int winnerId;
         public int loserId;
+    }
+
+    public static class PowerupSpawned {
+        public int   powerupId;
+        public int   type;  // 1=speed, 2=shield, 3=magnet
+        public float x, y;
+    }
+
+    public static class PowerupDespawned {
+        public int powerupId;
+    }
+
+    public static class PowerupCollected {
+        public int powerupId;
+    }
+
+    public static class PowerupEffect {
+        public int   type;
+        public float duration;
     }
 }

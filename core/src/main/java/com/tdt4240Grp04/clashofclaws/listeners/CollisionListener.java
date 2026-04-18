@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
@@ -29,6 +30,7 @@ public class CollisionListener implements ContactListener {
     private ComponentMapper<CatBodyComponent> cbcm = ComponentMapper.getFor(CatBodyComponent.class);
     private ComponentMapper<OpponentComponent> ocm = ComponentMapper.getFor(OpponentComponent.class);
     private ComponentMapper<SizeComponent> scm = ComponentMapper.getFor(SizeComponent.class);
+    private ComponentMapper<CatTypeComponent> ctcm = ComponentMapper.getFor(CatTypeComponent.class);
 
     public CollisionListener(Engine engine, GameClient gameClient) {
         this.engine = engine;
@@ -131,6 +133,7 @@ public class CollisionListener implements ContactListener {
 
         if (isAHead && !isBHead) {
             Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Body)");
+            if (tryAbsorbWithShield(catA)) return;
             setCatDead(catA);
             if(pcm.has(catA)){
                 Network.CatDefeated msg = new Network.CatDefeated();
@@ -140,6 +143,7 @@ public class CollisionListener implements ContactListener {
             }
         } else if (!isAHead && isBHead) {
             Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Body)");
+            if (tryAbsorbWithShield(catB)) return;
             setCatDead(catB);
             if(pcm.has(catB)){
                 Network.CatDefeated msg = new Network.CatDefeated();
@@ -150,6 +154,7 @@ public class CollisionListener implements ContactListener {
         } else if (isAHead && isBHead) {
             if (scoreA > scoreB) {
                 Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Head)");
+                if (tryAbsorbWithShield(catA)) return;
                 setCatDead(catA);
                 if(pcm.has(catA)){
                     Network.CatDefeated msg = new Network.CatDefeated();
@@ -159,6 +164,7 @@ public class CollisionListener implements ContactListener {
                 }
             } else if (scoreB > scoreA) {
                 Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Head)");
+                if (tryAbsorbWithShield(catB)) return;
                 setCatDead(catB);
                 if(pcm.has(catB)){
                     Network.CatDefeated msg = new Network.CatDefeated();
@@ -185,6 +191,15 @@ public class CollisionListener implements ContactListener {
                 }
             }
         }
+    }
+
+    private boolean tryAbsorbWithShield(Entity e) {
+        CatTypeComponent catType = ctcm.get(e);
+        if (catType != null && catType.shieldActive) {
+            catType.shieldActive = false;
+            return true;
+        }
+        return false;
     }
 
     private void handleSelfCollision(Entity cat, Fixture fixtureA, Fixture fixtureB) {

@@ -23,10 +23,14 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.CatBodySystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.DashSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PhysicsSystem;
+import com.tdt4240Grp04.clashofclaws.ecs.systems.PowerupSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.RemovalSystem;
 import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.listeners.CollisionListener;
@@ -47,6 +51,8 @@ public class PlayLogic {
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
     private boolean hadOpponents = false;
+    private java.util.concurrent.ConcurrentHashMap<Integer, Network.PowerupSpawned> activePowerups
+        = new java.util.concurrent.ConcurrentHashMap<>();
     private int killCount = 0;
     private float survivalSeconds = 0f;
     private Listener networkListener;
@@ -68,6 +74,7 @@ public class PlayLogic {
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new RemovalSystem(world));
         engine.addSystem(new CatBodySystem(world));
+        engine.addSystem(new PowerupSystem());
 
         entityFactory = new EntityFactory(engine, world);
 
@@ -199,6 +206,17 @@ public class PlayLogic {
                             }
                         }
                     });
+                } else if (object instanceof Network.PowerupSpawned) {
+                    Network.PowerupSpawned msg = (Network.PowerupSpawned) object;
+                    Gdx.app.postRunnable(() -> activePowerups.put(msg.powerupId, msg));
+
+                } else if (object instanceof Network.PowerupDespawned) {
+                    Network.PowerupDespawned msg = (Network.PowerupDespawned) object;
+                    Gdx.app.postRunnable(() -> activePowerups.remove(msg.powerupId));
+
+                } else if (object instanceof Network.PowerupEffect) {
+                    Network.PowerupEffect msg = (Network.PowerupEffect) object;
+                    Gdx.app.postRunnable(() -> applyPowerupEffect(msg.type, msg.duration));
                 }
             }
         };
@@ -255,6 +273,47 @@ public class PlayLogic {
             msg.id = pComp.networkID;
             gameClient.sendUDP(msg);
         }
+
+        // Powerup collection proximity check
+        if (physComp != null) {
+            float px = physComp.body.getPosition().x;
+            float py = physComp.body.getPosition().y;
+            for (java.util.Map.Entry<Integer, Network.PowerupSpawned> entry : activePowerups.entrySet()) {
+                Network.PowerupSpawned sp = entry.getValue();
+                float dx = px - sp.x;
+                float dy = py - sp.y;
+                if (dx * dx + dy * dy < 3f * 3f) {
+                    Network.PowerupCollected col = new Network.PowerupCollected();
+                    col.powerupId = sp.powerupId;
+                    activePowerups.remove(sp.powerupId);
+                    gameClient.sendTCP(col);
+                    break;
+                }
+            }
+        }
+
+        // Kibble magnet effect
+        PowerupComponent pp = player.getComponent(PowerupComponent.class);
+        if (pp != null && pp.activeType == PowerupComponent.KIBBLE_MAGNET && physComp != null) {
+            float px = physComp.body.getPosition().x;
+            float py = physComp.body.getPosition().y;
+            for (Entity kibble : engine.getEntitiesFor(
+                    Family.all(KibbleComponent.class, PhysicsComponent.class).get())) {
+                PhysicsComponent kPhys = kibble.getComponent(PhysicsComponent.class);
+                if (kPhys == null) continue;
+                float kx = kPhys.body.getPosition().x;
+                float ky = kPhys.body.getPosition().y;
+                float dx = px - kx;
+                float dy = py - ky;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                if (dist < 15f && dist > 0.01f) {
+                    float speed = 20f * (1f / 60f);
+                    float nx = dx / dist;
+                    float ny = dy / dist;
+                    kPhys.body.setTransform(kx + nx * speed, ky + ny * speed, 0);
+                }
+            }
+        }
     }
 
     public Engine getEngine() {
@@ -272,6 +331,23 @@ public class PlayLogic {
 
     public boolean hasPlayerWon() {
         return hadOpponents && otherPlayers.isEmpty() && !isPlayerDead();
+    }
+
+    private void applyPowerupEffect(int type, float duration) {
+        PowerupComponent p = player.getComponent(PowerupComponent.class);
+        if (p == null) return;
+        p.activeType       = type;
+        p.remainingSeconds = duration;
+        if (type == PowerupComponent.SHIELD) {
+            CatTypeComponent ct = player.getComponent(CatTypeComponent.class);
+            if (ct != null) ct.shieldActive = true;
+        }
+        // SPEED_BOOST handled by PowerupSpeedDecorator each frame.
+        // KIBBLE_MAGNET handled each frame in update().
+    }
+
+    public java.util.Collection<Network.PowerupSpawned> getActivePowerups() {
+        return activePowerups.values();
     }
 
     public void dispose() {

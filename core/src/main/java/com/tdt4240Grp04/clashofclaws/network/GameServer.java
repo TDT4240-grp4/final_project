@@ -22,6 +22,15 @@ public class GameServer {
     private static ConcurrentHashMap<String, ConcurrentHashMap<Integer, Network.KibbleData>> roomKibbles = new ConcurrentHashMap<>();
     private static int kibbleIdCounter = 0;
 
+    // Per-room powerups
+    private static ConcurrentHashMap<String, ConcurrentHashMap<Integer, Network.PowerupSpawned>> roomPowerups
+        = new ConcurrentHashMap<>();
+    private static int powerupIdCounter = 0;
+    private static final java.util.Timer powerupTimer = new java.util.Timer(true);
+    private static final float[] POWERUP_DURATIONS = { 0f, 5f, 8f, 6f }; // index = type
+    private static final long POWERUP_RESPAWN_MS = 20_000L;
+    private static final int POWERUPS_PER_TYPE = 8;
+
     // Public matchmaking queue
     private static List<Connection> publicQueue = new ArrayList<>();
 
@@ -199,6 +208,49 @@ public class GameServer {
                         if (roomCode == null) return;
                         sendToRoomTCP(roomCode, (Network.CatDefeated) object);
                     }
+
+                    else if (object instanceof Network.PowerupCollected) {
+                        Network.PowerupCollected msg = (Network.PowerupCollected) object;
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
+                        ConcurrentHashMap<Integer, Network.PowerupSpawned> powerups = roomPowerups.get(roomCode);
+                        if (powerups == null) return;
+                        Network.PowerupSpawned spawn = powerups.remove(msg.powerupId);
+                        if (spawn == null) return; // already collected
+
+                        Network.PowerupEffect effect = new Network.PowerupEffect();
+                        effect.type     = spawn.type;
+                        effect.duration = POWERUP_DURATIONS[spawn.type];
+                        server.sendToTCP(connection.getID(), effect);
+
+                        Network.PowerupDespawned despawn = new Network.PowerupDespawned();
+                        despawn.powerupId = msg.powerupId;
+                        List<Connection> room = rooms.get(roomCode);
+                        if (room != null) {
+                            for (Connection c : room) {
+                                if (c.getID() != connection.getID())
+                                    server.sendToTCP(c.getID(), despawn);
+                            }
+                        }
+
+                        final int respawnType = spawn.type;
+                        final String respawnRoom = roomCode;
+                        powerupTimer.schedule(new java.util.TimerTask() {
+                            @Override public void run() {
+                                List<Connection> r = rooms.get(respawnRoom);
+                                if (r == null || r.isEmpty()) return;
+                                ConcurrentHashMap<Integer, Network.PowerupSpawned> rp = roomPowerups.get(respawnRoom);
+                                if (rp == null) return;
+                                Network.PowerupSpawned newSpawn = new Network.PowerupSpawned();
+                                synchronized (GameServer.class) { newSpawn.powerupId = powerupIdCounter++; }
+                                newSpawn.type = respawnType;
+                                newSpawn.x = 10f + (float)(Math.random() * 180f);
+                                newSpawn.y = 10f + (float)(Math.random() * 180f);
+                                rp.put(newSpawn.powerupId, newSpawn);
+                                for (Connection c : r) server.sendToTCP(c.getID(), newSpawn);
+                            }
+                        }, POWERUP_RESPAWN_MS);
+                    }
                 }
 
                 @Override
@@ -222,6 +274,7 @@ public class GameServer {
                             if (room.isEmpty()) {
                                 rooms.remove(roomCode);
                                 roomKibbles.remove(roomCode);
+                                roomPowerups.remove(roomCode);
                             } else {
                                 broadcastLobbyUpdate(room);
                             }
@@ -236,6 +289,24 @@ public class GameServer {
             System.err.println("Server failed to start.");
             e.printStackTrace();
         }
+    }
+
+    private static void spawnRoomPowerups(String roomCode) {
+        ConcurrentHashMap<Integer, Network.PowerupSpawned> powerups = new ConcurrentHashMap<>();
+        List<Connection> room = rooms.get(roomCode);
+        if (room == null) return;
+        for (int type = 1; type <= 3; type++) {
+            for (int i = 0; i < POWERUPS_PER_TYPE; i++) {
+                Network.PowerupSpawned spawn = new Network.PowerupSpawned();
+                synchronized (GameServer.class) { spawn.powerupId = powerupIdCounter++; }
+                spawn.type = type;
+                spawn.x = 10f + (float)(Math.random() * 180f);
+                spawn.y = 10f + (float)(Math.random() * 180f);
+                powerups.put(spawn.powerupId, spawn);
+                for (Connection c : room) server.sendToTCP(c.getID(), spawn);
+            }
+        }
+        roomPowerups.put(roomCode, powerups);
     }
 
     private static void startGame(String roomCode, List<Connection> room) {
@@ -253,6 +324,7 @@ public class GameServer {
         }
         roomKibbles.put(roomCode, kibbles);
         for (Connection c : room) server.sendToTCP(c.getID(), new Network.GameStart());
+        spawnRoomPowerups(roomCode);
     }
 
     private static void sendToRoomTCP(String roomCode, Object msg) {

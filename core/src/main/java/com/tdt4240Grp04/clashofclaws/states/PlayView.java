@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -26,8 +27,10 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
+import com.tdt4240Grp04.clashofclaws.network.Network;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,8 +47,14 @@ public class PlayView {
     private TextureAtlas atlas;
 
     private Stage stage;
+    private PlayLogic playLogic;
+    private Texture speedTexture;
+    private Texture shieldTexture;
+    private Texture magnetTexture;
+
     private Label scoreLabel;
     private Label staminaLabel;
+    private Label powerupLabel;
     private Table leaderboardTable;
     private Label coordsLabel;
     private HashMap<Entity, Label> nameLabels;
@@ -55,10 +64,14 @@ public class PlayView {
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
 
-    public PlayView(Engine engine, Entity player) {
+    public PlayView(Engine engine, Entity player, PlayLogic playLogic) {
         this.engine = engine;
         this.player = player;
+        this.playLogic = playLogic;
         this.shapeRenderer = new ShapeRenderer();
+        speedTexture  = new Texture(Gdx.files.internal("red_fish.png"));
+        shieldTexture = new Texture(Gdx.files.internal("fish.png"));
+        magnetTexture = new Texture(Gdx.files.internal("grey_fish.png"));
         this.gameViewport = new FitViewport(25f, 25f * (Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth()));
         this.uiViewport = new ScreenViewport();
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
@@ -76,7 +89,12 @@ public class PlayView {
 
         staminaLabel = new Label("Stamina: 100%", skin);
         staminaLabel.setFontScale(0.8f);
-        table.add(staminaLabel).padLeft(20).padTop(5);
+        table.add(staminaLabel).padLeft(20).padTop(5).row();
+
+        powerupLabel = new Label("", skin);
+        powerupLabel.setFontScale(0.8f);
+        powerupLabel.setColor(Color.YELLOW);
+        table.add(powerupLabel).padLeft(20).padTop(5);
 
         stage.addActor(table);
 
@@ -192,6 +210,20 @@ public class PlayView {
                 texture.texture.getWidth(), texture.texture.getHeight(), // srcWidth, srcHeight
                 false, false); // flipX, flipY
         }
+        // Draw powerup pickups as fish sprites
+        if (playLogic != null) {
+            for (Network.PowerupSpawned sp : playLogic.getActivePowerups()) {
+                Texture tex;
+                switch (sp.type) {
+                    case 1:  tex = speedTexture;  break;
+                    case 2:  tex = shieldTexture; break;
+                    case 3:  tex = magnetTexture; break;
+                    default: continue;
+                }
+                float s = 2f;
+                batch.draw(tex, sp.x - s / 2, sp.y - s / 2, s, s);
+            }
+        }
         batch.end();
 
         // draw UI
@@ -217,6 +249,15 @@ public class PlayView {
             int pct = (int)((stamina.currentStamina / stamina.maxStamina) * 100);
             staminaLabel.setText("Stamina: " + pct + "%");
             staminaLabel.setColor(pct > 50 ? Color.GREEN : pct > 20 ? Color.YELLOW : Color.RED);
+        }
+
+        // Update active powerup label
+        PowerupComponent pp = PowerupComponent.MAPPER.get(player);
+        if (pp != null && pp.activeType != PowerupComponent.NONE) {
+            String[] names = {"", "SPEED BOOST", "SHIELD", "KIBBLE MAGNET"};
+            powerupLabel.setText(names[pp.activeType] + " " + (int)pp.remainingSeconds + "s");
+        } else {
+            powerupLabel.setText("");
         }
 
         // Update leaderboard
@@ -308,5 +349,8 @@ public class PlayView {
         stage.dispose();
         skin.dispose();
         atlas.dispose();
+        speedTexture.dispose();
+        shieldTexture.dispose();
+        magnetTexture.dispose();
     }
 }
