@@ -80,11 +80,13 @@ public class LoginState extends State {
         // Main Buttons
         TextButton playBtn = new TextButton("PLAY", primaryBtnStyle);
         TextButton howToPlayBtn = new TextButton("HOW TO PLAY", secondaryBtnStyle);
+        TextButton settingsBtn = new TextButton("SETTINGS", secondaryBtnStyle);
 
         // Assemble Right Table
         rightTable.add(joinBox).padBottom(20).row();
         rightTable.add(playBtn).width(320).height(80).padBottom(20).row();
-        rightTable.add(howToPlayBtn).width(450).height(80);
+        rightTable.add(howToPlayBtn).width(450).height(80).padBottom(20).row();
+        rightTable.add(settingsBtn).width(450).height(80);
 
         mainTable.add(leftTable).expand().center().padLeft(50);
         mainTable.add(rightTable).expand().center().padRight(50);
@@ -102,6 +104,13 @@ public class LoginState extends State {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 gsm.set(new HowToPlayState(gsm, firebase));
+            }
+        });
+
+        settingsBtn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                gsm.set(new SettingsState(gsm, firebase));
             }
         });
     }
