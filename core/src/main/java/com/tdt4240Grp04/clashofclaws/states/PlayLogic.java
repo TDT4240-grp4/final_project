@@ -82,7 +82,7 @@ public class PlayLogic {
 
         float startX = (float) (Math.random() * (MAP_WIDTH - 20f)) + 10f;
         float startY = (float) (Math.random() * (MAP_HEIGHT - 20f)) + 10f;
-        player = entityFactory.createPlayer(startX, startY, getBodyHexColour(catIndex), name, catIndex, catHeadTexture);
+        player = entityFactory.createPlayer(startX, startY, getBodyHexColour(gameClient.getClient().getID()), name, catIndex, catHeadTexture);
 
 
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
@@ -97,7 +97,7 @@ public class PlayLogic {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
                     Gdx.app.postRunnable(() -> {
                         if (otherPlayers.containsKey(msg.id)) return;
-                        Entity newOpponent = entityFactory.createOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
+                        Entity newOpponent = entityFactory.createOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.id), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
                         hadOpponents = true;
                         Gdx.app.log(TAG, "Spawned opponent with ID: " + msg.id);
@@ -224,15 +224,19 @@ public class PlayLogic {
         gameClient.sendTCP(new Network.ClientReady());
     }
 
-    private String getBodyHexColour(int catIndex) {
-        if (catIndex + 1 == 1) {
-            return "ffeedb";
-        }
-        else if (catIndex + 1 == 2) {
-            return "2b1803";
-        }
-        // add on for other cat
-        return "ffeedb";
+    private static final String[] BODY_COLOR_PALETTE = {
+        "e74c3c", // red
+        "3498db", // blue
+        "2ecc71", // green
+        "f39c12", // orange
+        "9b59b6", // purple
+        "1abc9c", // teal
+        "e91e63", // pink
+        "f1c40f", // yellow
+    };
+
+    private String getBodyHexColour(int networkId) {
+        return BODY_COLOR_PALETTE[Math.abs(networkId) % BODY_COLOR_PALETTE.length];
     }
 
     private void createMapBounds() {

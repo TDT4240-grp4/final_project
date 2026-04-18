@@ -305,28 +305,28 @@ public class PlayView {
         leaderboardTable.clear();
         leaderboardTable.add(new Label("-- Leaderboard --", skin)).padTop(20).padRight(20).row();
 
-        // Collect all player/opponent (name, score) pairs
-        List<String[]> entries = new ArrayList<>();
+        // Collect all player/opponent (name, score, color) tuples
+        List<Object[]> entries = new ArrayList<>();
         PlayerComponent myComp = player.getComponent(PlayerComponent.class);
         if (myComp != null) {
-            entries.add(new String[]{myComp.name + " (you)", String.valueOf(myComp.score), "me"});
+            entries.add(new Object[]{myComp.name + " (you)", myComp.score, bodyColor(player)});
         }
         for (Entity e : engine.getEntitiesFor(Family.all(OpponentComponent.class).get())) {
             OpponentComponent opp = e.getComponent(OpponentComponent.class);
             if (opp != null) {
-                entries.add(new String[]{opp.name, String.valueOf(opp.score), "opp"});
+                entries.add(new Object[]{opp.name, opp.score, bodyColor(e)});
             }
         }
 
         // Sort by score descending
-        entries.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
+        entries.sort((a, b) -> (Integer)b[1] - (Integer)a[1]);
 
-        // Add rows
+        // Add rows — label color matches the player's body color
         for (int i = 0; i < entries.size(); i++) {
-            String[] entry = entries.get(i);
+            Object[] entry = entries.get(i);
             Label row = new Label((i + 1) + ". " + entry[0] + "  " + entry[1], skin);
             row.setFontScale(0.8f);
-            if ("me".equals(entry[2])) row.setColor(Color.CYAN);
+            row.setColor((Color) entry[2]);
             leaderboardTable.add(row).padRight(20).row();
         }
 
@@ -347,7 +347,7 @@ public class PlayView {
                 if (oComp != null && oComp.name != null) name = oComp.name;
 
                 label = new Label(name, skin);
-                label.setColor(Color.WHITE);
+                label.setColor(bodyColor(e));
                 stage.addActor(label);
                 nameLabels.put(e, label);
             }
@@ -378,6 +378,11 @@ public class PlayView {
         stage.getViewport().apply();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
+    }
+
+    private Color bodyColor(Entity e) {
+        CatBodyComponent body = CatBodyComponent.MAPPER.get(e);
+        return (body != null && body.color != null) ? body.color : Color.WHITE;
     }
 
     public void resize(int width, int height) {
