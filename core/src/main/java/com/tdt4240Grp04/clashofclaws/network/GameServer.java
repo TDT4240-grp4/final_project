@@ -164,6 +164,14 @@ public class GameServer {
                         syncMsg.kibbles = kibbles != null ? new ArrayList<>(kibbles.values()) : new ArrayList<>();
                         server.sendToTCP(connection.getID(), syncMsg);
 
+                        // Re-send existing powerups (client listener may not have been ready when they were first broadcast)
+                        ConcurrentHashMap<Integer, Network.PowerupSpawned> powerups = roomPowerups.get(roomCode);
+                        if (powerups != null) {
+                            for (Network.PowerupSpawned sp : powerups.values()) {
+                                server.sendToTCP(connection.getID(), sp);
+                            }
+                        }
+
                         // Send existing roommates to this player
                         for (Connection roommate : room) {
                             if (roommate.getID() == connection.getID()) continue;
