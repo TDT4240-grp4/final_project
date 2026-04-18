@@ -29,7 +29,7 @@ public class GameServer {
     private static final java.util.Timer powerupTimer = new java.util.Timer(true);
     private static final float[] POWERUP_DURATIONS = { 0f, 5f, 8f, 6f }; // index = type
     private static final long POWERUP_RESPAWN_MS = 20_000L;
-    private static final int POWERUPS_PER_TYPE = 8;
+    private static final int POWERUPS_PER_TYPE = 15;
 
     // Public matchmaking queue
     private static List<Connection> publicQueue = new ArrayList<>();

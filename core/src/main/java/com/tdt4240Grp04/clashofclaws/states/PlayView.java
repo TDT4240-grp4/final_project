@@ -220,7 +220,7 @@ public class PlayView {
                     case 3:  tex = magnetTexture; break;
                     default: continue;
                 }
-                float s = 2f;
+                float s = 0.5f;
                 batch.draw(tex, sp.x - s / 2, sp.y - s / 2, s, s);
             }
         }

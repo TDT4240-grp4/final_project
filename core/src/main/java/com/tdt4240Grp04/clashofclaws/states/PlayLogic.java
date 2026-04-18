@@ -286,7 +286,7 @@ public class PlayLogic {
                 Network.PowerupSpawned sp = entry.getValue();
                 float dx = px - sp.x;
                 float dy = py - sp.y;
-                if (dx * dx + dy * dy < 3f * 3f) {
+                if (dx * dx + dy * dy < 1f * 1f) {
                     Network.PowerupCollected col = new Network.PowerupCollected();
                     col.powerupId = sp.powerupId;
                     activePowerups.remove(sp.powerupId);
