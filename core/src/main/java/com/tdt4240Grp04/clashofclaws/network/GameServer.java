@@ -124,14 +124,20 @@ public class GameServer {
                         } else {
                             // Public queue player starts game
                             synchronized (publicQueue) {
-                                if (publicQueue.contains(connection) && publicQueue.size() >= MIN_PLAYERS_TO_START) {
-                                    int count = Math.min(publicQueue.size(), MAX_PLAYERS);
-                                    List<Connection> gameRoom = new ArrayList<>(publicQueue.subList(0, count));
-                                    for (int i = 0; i < count; i++) publicQueue.remove(0);
-                                    String code = generateRoomCode();
-                                    rooms.put(code, gameRoom);
-                                    for (Connection c : gameRoom) playerRooms.put(c.getID(), code);
-                                    startGame(code, gameRoom);
+                                if (publicQueue.contains(connection)) {
+                                    if (publicQueue.size() >= MIN_PLAYERS_TO_START) {
+                                        int count = Math.min(publicQueue.size(), MAX_PLAYERS);
+                                        List<Connection> gameRoom = new ArrayList<>(publicQueue.subList(0, count));
+                                        for (int i = 0; i < count; i++) publicQueue.remove(0);
+                                        String code = generateRoomCode();
+                                        rooms.put(code, gameRoom);
+                                        for (Connection c : gameRoom) playerRooms.put(c.getID(), code);
+                                        startGame(code, gameRoom);
+                                    } else {
+                                        Network.RoomError err = new Network.RoomError();
+                                        err.message = "Need at least 2 players to start";
+                                        server.sendToTCP(connection.getID(), err);
+                                    }
                                 }
                             }
                         }

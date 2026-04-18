@@ -143,6 +143,7 @@ public class LobbyState extends State {
                 inPrivateRoom = true;
                 modeTable.setVisible(false);
                 backBtn.setVisible(true);
+                startGameBtn.setVisible(true);
                 statusLabel.setText("SEARCHING FOR MATCH...");
             }
         });
