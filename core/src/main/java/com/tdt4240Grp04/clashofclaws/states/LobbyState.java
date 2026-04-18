@@ -187,9 +187,18 @@ public class LobbyState extends State {
             }
         });
 
+        TextButton modeBackBtn = new TextButton("BACK", skin);
+        modeBackBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                gameClient.disconnect();
+                gsm.set(new AddNameState(gsm, firebase, selectedCatIndex));
+            }
+        });
+
         modeTable.add(quickMatchBtn).width(400).height(80).pad(10).row();
         modeTable.add(createRoomBtn).width(400).height(80).pad(10).row();
-        modeTable.add(joinRoomBtn).width(400).height(80).pad(10);
+        modeTable.add(joinRoomBtn).width(400).height(80).pad(10).row();
+        modeTable.add(modeBackBtn).width(400).height(80).pad(10);
         if (presetRoomCode != null) modeTable.setVisible(false);
         stage.addActor(modeTable);
 
