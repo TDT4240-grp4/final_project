@@ -110,6 +110,7 @@ public class CollisionListener implements ContactListener {
         addCatScore(cat, 10);
 
         if (pcm.has(cat)) {
+            pcm.get(cat).kibbleCount++;
             Network.KibbleEaten msg = new Network.KibbleEaten();
             msg.kibbleId = kcm.get(kibble).id;
             msg.eatenByPlayerId = pcm.get(cat).networkID;
