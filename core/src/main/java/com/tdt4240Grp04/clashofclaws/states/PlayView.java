@@ -11,10 +11,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -44,7 +47,10 @@ public class PlayView {
     private Label scoreLabel;
     private Label staminaLabel;
     private Table leaderboardTable;
+    private Label coordsLabel;
     private HashMap<Entity, Label> nameLabels;
+    private boolean quitRequested = false;
+    public static boolean showCoordinates = true;
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
@@ -81,6 +87,27 @@ public class PlayView {
         stage.addActor(leaderboardTable);
 
         nameLabels = new HashMap<>();
+
+        Table coordsTable = new Table();
+        coordsTable.bottom().right();
+        coordsTable.setFillParent(true);
+        coordsLabel = new Label("", skin);
+        coordsLabel.setFontScale(0.7f);
+        coordsLabel.setColor(Color.WHITE);
+        coordsTable.add(coordsLabel).padBottom(20).padRight(20);
+        stage.addActor(coordsTable);
+
+        TextButton quitBtn = new TextButton("QUIT", skin);
+        Table quitTable = new Table();
+        quitTable.bottom().left();
+        quitTable.setFillParent(true);
+        quitTable.add(quitBtn).width(160).height(60).padLeft(20).padBottom(20);
+        quitBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                quitRequested = true;
+            }
+        });
+        stage.addActor(quitTable);
     }
 
     public Stage getStage() {
@@ -89,6 +116,10 @@ public class PlayView {
 
     public Skin getSkin() {
         return skin;
+    }
+
+    public boolean isQuitRequested() {
+        return quitRequested;
     }
 
     public void render(SpriteBatch batch) {
@@ -129,14 +160,12 @@ public class PlayView {
 
         for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatBodyComponent.class).get())) {
             CatBodyComponent catBody = CatBodyComponent.MAPPER.get(entity);
-            shapeRenderer.setColor(Color.BLACK);
-            for (Vector2 segment : catBody.bodyParts) {
+            // Draw tail-to-head so head visually overlaps tail
+            for (int si = catBody.bodyParts.size - 1; si >= 0; si--) {
+                Vector2 segment = catBody.bodyParts.get(si);
+                shapeRenderer.setColor(Color.BLACK);
                 shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius + 0.03f, 30);
-            }
-
-            // inner color circles on top
-            shapeRenderer.setColor(catBody.color);
-            for (Vector2 segment : catBody.bodyParts) {
+                shapeRenderer.setColor(catBody.color);
                 shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius, 30);
             }
         }
@@ -169,6 +198,17 @@ public class PlayView {
         PlayerComponent pc = player.getComponent(PlayerComponent.class);
         if (pc != null) {
             scoreLabel.setText("Score: " + pc.score);
+        }
+
+        // Update coordinates label
+        PhysicsComponent playerPhysCoords = PhysicsComponent.MAPPER.get(player);
+        if (showCoordinates && playerPhysCoords != null) {
+            float cx = playerPhysCoords.body.getPosition().x;
+            float cy = playerPhysCoords.body.getPosition().y;
+            coordsLabel.setText(String.format("X: %.1f  Y: %.1f", cx, cy));
+            coordsLabel.setVisible(true);
+        } else {
+            coordsLabel.setVisible(false);
         }
 
         // Update stamina label

@@ -104,7 +104,7 @@ public class CollisionListener implements ContactListener {
         CatBodyComponent body = cbcm.get(cat);
         if (body != null) {
             SizeComponent sizeComp = scm.get(cat);
-            body.maxLength += (sizeComp != null) ? sizeComp.growthRate : 5;
+            body.maxLength = Math.min(body.maxLength + (int)((sizeComp != null) ? sizeComp.growthRate : 5), 500);
         }
 
         addCatScore(cat, 10);
@@ -163,26 +163,29 @@ public class CollisionListener implements ContactListener {
                     msg.loserId = getCatId(catB);
                     gameClient.sendTCP(msg);
                 }
+            } else {
+                // Equal score tie — both die
+                Gdx.app.log("Collision", "Head vs Head tie — both cats die");
+                setCatDead(catA);
+                setCatDead(catB);
+                if (pcm.has(catA)) {
+                    Network.CatDefeated msg = new Network.CatDefeated();
+                    msg.winnerId = -1;
+                    msg.loserId = getCatId(catA);
+                    gameClient.sendTCP(msg);
+                }
+                if (pcm.has(catB)) {
+                    Network.CatDefeated msg = new Network.CatDefeated();
+                    msg.winnerId = -1;
+                    msg.loserId = getCatId(catB);
+                    gameClient.sendTCP(msg);
+                }
             }
         }
     }
 
     private void handleSelfCollision(Entity cat, Fixture fixtureA, Fixture fixtureB) {
-        boolean isAHead = !fixtureA.isSensor();
-        boolean isBHead = !fixtureB.isSensor();
-
-        if (isAHead != isBHead) {
-            com.badlogic.gdx.physics.box2d.Body bodyFixture = isAHead ? fixtureB.getBody() : fixtureA.getBody();
-            CatBodyComponent catBody = cbcm.get(cat);
-
-            if (catBody != null) {
-                int segmentIndex = catBody.bodySegmentBodies.indexOf(bodyFixture, true);
-
-                if (segmentIndex >= 10) {
-                    setCatDead(cat);
-                }
-            }
-        }
+        // Self-collision does not kill — only opponent body contact is lethal
     }
 
     @Override

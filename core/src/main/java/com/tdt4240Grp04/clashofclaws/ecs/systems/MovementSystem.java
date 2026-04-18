@@ -13,8 +13,7 @@ public class MovementSystem extends IteratingSystem {
 
     private static final float DEFAULT_MAX_SPEED = 5f;
     private static final float DEFAULT_MIN_SPEED = 1.5f;
-    private static final float MAX_LENGTH_FOR_MIN_SPEED = 150f;
-    private static final float STARTING_LENGTH = 10f;
+    private static final float MAX_LENGTH_FOR_MIN_SPEED = 500f;
 
     public MovementSystem() {
         super(Family.all(CharacterComponent.class, PhysicsComponent.class, PlayerComponent.class).get());
@@ -29,13 +28,14 @@ public class MovementSystem extends IteratingSystem {
 
         float maxSpeed = (catTypeComp != null) ? catTypeComp.maxSpeed : DEFAULT_MAX_SPEED;
         float minSpeed = (catTypeComp != null) ? catTypeComp.minSpeed : DEFAULT_MIN_SPEED;
+        float startingLength = (catTypeComp != null) ? catTypeComp.startingBodyLength : 1f;
 
         float currentSpeed = maxSpeed;
         if (catBodyComp != null) {
-            float lengthRange = MAX_LENGTH_FOR_MIN_SPEED - STARTING_LENGTH;
+            float lengthRange = MAX_LENGTH_FOR_MIN_SPEED - startingLength;
             float speedRange = maxSpeed - minSpeed;
             if (lengthRange > 0) {
-                float lengthProgress = Math.max(0, catBodyComp.maxLength - STARTING_LENGTH);
+                float lengthProgress = Math.max(0, catBodyComp.maxLength - startingLength);
                 float speedReduction = (lengthProgress / lengthRange) * speedRange;
                 currentSpeed = Math.max(minSpeed, maxSpeed - speedReduction);
             }

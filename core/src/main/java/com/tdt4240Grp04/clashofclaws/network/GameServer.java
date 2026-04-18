@@ -7,20 +7,19 @@ import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameServer {
     private static final int MAX_ROOM_PLAYERS = 2;
 
-    // All connected players and their state
     private static ConcurrentHashMap<Integer, Network.PlayerConnected> players = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<Integer, Network.KibbleData> kibbles = new ConcurrentHashMap<>();
-    private static int kibbleIdCounter = 0;
 
     // Room management
     private static ConcurrentHashMap<String, List<Connection>> rooms = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, String> playerRooms = new ConcurrentHashMap<>();
+    // Per-room kibbles
+    private static ConcurrentHashMap<String, ConcurrentHashMap<Integer, Network.KibbleData>> roomKibbles = new ConcurrentHashMap<>();
+    private static int kibbleIdCounter = 0;
 
     // Public matchmaking queue
     private static List<Connection> publicQueue = new ArrayList<>();
@@ -28,14 +27,6 @@ public class GameServer {
     private static Server server;
 
     public static void main(String[] args) {
-        for (int i = 0; i < 200; i++) {
-            Network.KibbleData k = new Network.KibbleData();
-            k.id = kibbleIdCounter++;
-            k.x = (float)(Math.random() * 200f);
-            k.y = (float)(Math.random() * 200f);
-            kibbles.put(k.id, k);
-        }
-
         try {
             server = new Server(16384, 16384);
             Network.register(server);
@@ -99,7 +90,7 @@ public class GameServer {
                             server.sendToTCP(connection.getID(), joined);
 
                             broadcastLobbyUpdate(room);
-                            if (room.size() >= MAX_ROOM_PLAYERS) startGame(room);
+                            if (room.size() >= MAX_ROOM_PLAYERS) startGame(msg.roomCode.toUpperCase(), room);
                         } else {
                             // Public matchmaking
                             synchronized (publicQueue) {
@@ -111,46 +102,67 @@ public class GameServer {
                                     String code = generateRoomCode();
                                     rooms.put(code, gameRoom);
                                     for (Connection c : gameRoom) playerRooms.put(c.getID(), code);
-                                    startGame(gameRoom);
+                                    startGame(code, gameRoom);
                                 }
                             }
                         }
                     }
 
                     else if (object instanceof Network.ClientReady) {
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
+                        List<Connection> room = rooms.get(roomCode);
+                        if (room == null) return;
+
+                        // Send this room's kibbles
+                        ConcurrentHashMap<Integer, Network.KibbleData> kibbles = roomKibbles.get(roomCode);
                         Network.KibbleInitialSync syncMsg = new Network.KibbleInitialSync();
-                        syncMsg.kibbles = new ArrayList<>(kibbles.values());
+                        syncMsg.kibbles = kibbles != null ? new ArrayList<>(kibbles.values()) : new ArrayList<>();
                         server.sendToTCP(connection.getID(), syncMsg);
 
-                        for (Network.PlayerConnected existing : players.values()) {
-                            if (existing.id != connection.getID()) {
-                                server.sendToTCP(connection.getID(), existing);
-                            }
+                        // Send existing roommates to this player
+                        for (Connection roommate : room) {
+                            if (roommate.getID() == connection.getID()) continue;
+                            Network.PlayerConnected existing = players.get(roommate.getID());
+                            if (existing != null) server.sendToTCP(connection.getID(), existing);
                         }
+
+                        // Broadcast this player to existing roommates
                         Network.PlayerConnected thisPlayer = players.get(connection.getID());
                         if (thisPlayer != null) {
-                            server.sendToAllExceptTCP(connection.getID(), thisPlayer);
+                            for (Connection roommate : room) {
+                                if (roommate.getID() != connection.getID()) {
+                                    server.sendToTCP(roommate.getID(), thisPlayer);
+                                }
+                            }
                         }
                     }
 
                     else if (object instanceof Network.PlayerMoved) {
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
                         Network.PlayerMoved moveEvent = (Network.PlayerMoved) object;
                         moveEvent.id = connection.getID();
                         Network.PlayerConnected p = players.get(connection.getID());
                         if (p != null) { p.x = moveEvent.x; p.y = moveEvent.y; }
-                        server.sendToAllExceptUDP(connection.getID(), moveEvent);
+                        sendToRoomExceptUDP(roomCode, connection.getID(), moveEvent);
                     }
 
                     else if (object instanceof Network.KibbleEaten) {
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
                         Network.KibbleEaten eaten = (Network.KibbleEaten) object;
-                        if (kibbles.containsKey(eaten.kibbleId)) {
+                        ConcurrentHashMap<Integer, Network.KibbleData> kibbles = roomKibbles.get(roomCode);
+                        if (kibbles != null && kibbles.containsKey(eaten.kibbleId)) {
                             kibbles.remove(eaten.kibbleId);
-                            server.sendToAllExceptTCP(connection.getID(), eaten);
+                            sendToRoomExceptTCP(roomCode, connection.getID(), eaten);
                         }
                     }
 
                     else if (object instanceof Network.CatDefeated) {
-                        server.sendToAllTCP((Network.CatDefeated) object);
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode == null) return;
+                        sendToRoomTCP(roomCode, (Network.CatDefeated) object);
                     }
                 }
 
@@ -160,20 +172,28 @@ public class GameServer {
                     players.remove(connection.getID());
 
                     String roomCode = playerRooms.remove(connection.getID());
+
+                    Network.PlayerDisconnected msg = new Network.PlayerDisconnected();
+                    msg.id = connection.getID();
+
                     if (roomCode != null) {
                         List<Connection> room = rooms.get(roomCode);
                         if (room != null) {
                             room.remove(connection);
-                            if (room.isEmpty()) rooms.remove(roomCode);
-                            else broadcastLobbyUpdate(room);
+                            // Notify remaining roommates
+                            for (Connection roommate : room) {
+                                server.sendToTCP(roommate.getID(), msg);
+                            }
+                            if (room.isEmpty()) {
+                                rooms.remove(roomCode);
+                                roomKibbles.remove(roomCode);
+                            } else {
+                                broadcastLobbyUpdate(room);
+                            }
                         }
                     } else {
                         synchronized (publicQueue) { publicQueue.remove(connection); }
                     }
-
-                    Network.PlayerDisconnected msg = new Network.PlayerDisconnected();
-                    msg.id = connection.getID();
-                    server.sendToAllTCP(msg);
                 }
             });
 
@@ -183,9 +203,43 @@ public class GameServer {
         }
     }
 
-    private static void startGame(List<Connection> room) {
-        System.out.println("Starting game for room with " + room.size() + " players");
+    private static void startGame(String roomCode, List<Connection> room) {
+        System.out.println("Starting game for room " + roomCode + " with " + room.size() + " players");
+        // Generate kibbles for this room
+        ConcurrentHashMap<Integer, Network.KibbleData> kibbles = new ConcurrentHashMap<>();
+        synchronized (GameServer.class) {
+            for (int i = 0; i < 200; i++) {
+                Network.KibbleData k = new Network.KibbleData();
+                k.id = kibbleIdCounter++;
+                k.x = (float)(Math.random() * 200f);
+                k.y = (float)(Math.random() * 200f);
+                kibbles.put(k.id, k);
+            }
+        }
+        roomKibbles.put(roomCode, kibbles);
         for (Connection c : room) server.sendToTCP(c.getID(), new Network.GameStart());
+    }
+
+    private static void sendToRoomTCP(String roomCode, Object msg) {
+        List<Connection> room = rooms.get(roomCode);
+        if (room == null) return;
+        for (Connection c : room) server.sendToTCP(c.getID(), msg);
+    }
+
+    private static void sendToRoomExceptTCP(String roomCode, int excludeId, Object msg) {
+        List<Connection> room = rooms.get(roomCode);
+        if (room == null) return;
+        for (Connection c : room) {
+            if (c.getID() != excludeId) server.sendToTCP(c.getID(), msg);
+        }
+    }
+
+    private static void sendToRoomExceptUDP(String roomCode, int excludeId, Object msg) {
+        List<Connection> room = rooms.get(roomCode);
+        if (room == null) return;
+        for (Connection c : room) {
+            if (c.getID() != excludeId) server.sendToUDP(c.getID(), msg);
+        }
     }
 
     private static void broadcastLobbyUpdate(List<Connection> room) {

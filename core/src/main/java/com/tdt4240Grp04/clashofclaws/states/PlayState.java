@@ -11,10 +11,16 @@ public class PlayState extends State {
     private PlayView playView;
     private PlayController playController;
     private FirebaseSDK firebase;
+    private GameClient gameClient;
+    private String playerName;
+    private int catIndex;
 
     public PlayState(StateManager gsm, FirebaseSDK firebase, GameClient gameClient, String name, int catIndex) {
         super(gsm);
         this.firebase = firebase;
+        this.gameClient = gameClient;
+        this.playerName = name;
+        this.catIndex = catIndex;
         playLogic = new PlayLogic(gameClient, name, catIndex);
         playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
         playController = new PlayController(playLogic.getPlayer(), playView.getStage(), playView.getSkin());
@@ -25,6 +31,11 @@ public class PlayState extends State {
     @Override
     public void update(float dt) {
         playLogic.update(dt);
+        if (playView.isQuitRequested()) {
+            gameClient.disconnect();
+            gsm.set(new LobbyState(gsm, firebase, playerName, catIndex));
+            return;
+        }
         if (playLogic.isPlayerDead()) {
             gsm.set(new GameOverState(gsm, firebase));
         }

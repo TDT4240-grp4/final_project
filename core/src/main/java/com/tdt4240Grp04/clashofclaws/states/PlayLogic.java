@@ -49,6 +49,7 @@ public class PlayLogic {
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
     private boolean hadOpponents = false;
+    private Listener networkListener;
 
     private final float MAP_WIDTH = 200f;
     private final float MAP_HEIGHT = 200f;
@@ -81,11 +82,12 @@ public class PlayLogic {
         }
 
 
-        gameClient.getClient().addListener(new Listener() {
+        networkListener = new Listener() {
             public void received(Connection connection, Object object) {
                 if (object instanceof Network.PlayerConnected) {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
                     Gdx.app.postRunnable(() -> {
+                        if (otherPlayers.containsKey(msg.id)) return;
                         Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
                         hadOpponents = true;
@@ -137,7 +139,7 @@ public class PlayLogic {
                             CatBodyComponent body = eater.getComponent(CatBodyComponent.class);
                             if (body != null) {
                                 SizeComponent sizeComp = eater.getComponent(SizeComponent.class);
-                                body.maxLength += (sizeComp != null) ? sizeComp.growthRate : 5;
+                                body.maxLength = Math.min(body.maxLength + (int)((sizeComp != null) ? sizeComp.growthRate : 5), 500);
                             }
                         }
 
@@ -196,7 +198,8 @@ public class PlayLogic {
                     });
                 }
             }
-        });
+        };
+        gameClient.getClient().addListener(networkListener);
 
         gameClient.sendTCP(new Network.ClientReady());
     }
@@ -248,6 +251,7 @@ public class PlayLogic {
         catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
         catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
         catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
+        catTypeComp.startingBodyLength = GameConfig.getStartingLength(catIndex);
         player.add(catTypeComp);
 
         StaminaComponent staminaComp = engine.createComponent(StaminaComponent.class);
@@ -269,6 +273,7 @@ public class PlayLogic {
 
         CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
         catBody.color = com.badlogic.gdx.graphics.Color.valueOf(hexColor);
+        catBody.maxLength = GameConfig.getStartingLength(catIndex);
         player.add(catBody);
 
         BodyDef bodyDef = new BodyDef();
@@ -314,6 +319,7 @@ public class PlayLogic {
         catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
         catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
         catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
+        catTypeComp.startingBodyLength = GameConfig.getStartingLength(catIndex);
         opponent.add(catTypeComp);
 
         SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
@@ -327,6 +333,7 @@ public class PlayLogic {
 
         CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
         catBody.color = com.badlogic.gdx.graphics.Color.valueOf(hexColor);
+        catBody.maxLength = GameConfig.getStartingLength(catIndex);
         opponent.add(catBody);
 
         BodyDef bodyDef = new BodyDef();
@@ -430,6 +437,9 @@ public class PlayLogic {
     }
 
     public void dispose() {
+        if (networkListener != null) {
+            gameClient.getClient().removeListener(networkListener);
+        }
         kibbleTexture.dispose();
         catHeadTexture.dispose();
         world.dispose();
