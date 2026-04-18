@@ -179,14 +179,35 @@ public class PlayView {
 
         for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatBodyComponent.class).get())) {
             CatBodyComponent catBody = CatBodyComponent.MAPPER.get(entity);
-            // Draw tail-to-head so head visually overlaps tail
-            for (int si = catBody.bodyParts.size - 1; si >= 0; si--) {
-                Vector2 segment = catBody.bodyParts.get(si);
-                shapeRenderer.setColor(Color.BLACK);
-                shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius + 0.03f, 30);
-                shapeRenderer.setColor(catBody.color);
-                shapeRenderer.circle(segment.x, segment.y, catBody.segmentRadius, 30);
+            PhysicsComponent phys = PhysicsComponent.MAPPER.get(entity);
+            if (catBody.bodyParts.size < 1) continue;
+
+            float width = catBody.segmentRadius * 2f;
+            float outlineWidth = width + 0.06f;
+
+            // Draw outline pass (black), then fill pass (color) for clean border
+            Vector2 head = phys.body.getPosition();
+            Vector2 prev = catBody.bodyParts.get(0);
+            Vector2 tail = catBody.bodyParts.get(catBody.bodyParts.size - 1);
+            int capSegs = 10;
+
+            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.rectLine(head.x, head.y, prev.x, prev.y, outlineWidth);
+            for (int si = 0; si < catBody.bodyParts.size - 1; si++) {
+                Vector2 a = catBody.bodyParts.get(si);
+                Vector2 b = catBody.bodyParts.get(si + 1);
+                shapeRenderer.rectLine(a.x, a.y, b.x, b.y, outlineWidth);
             }
+            shapeRenderer.circle(tail.x, tail.y, outlineWidth / 2f, capSegs);
+
+            shapeRenderer.setColor(catBody.color);
+            shapeRenderer.rectLine(head.x, head.y, prev.x, prev.y, width);
+            for (int si = 0; si < catBody.bodyParts.size - 1; si++) {
+                Vector2 a = catBody.bodyParts.get(si);
+                Vector2 b = catBody.bodyParts.get(si + 1);
+                shapeRenderer.rectLine(a.x, a.y, b.x, b.y, width);
+            }
+            shapeRenderer.circle(tail.x, tail.y, width / 2f, capSegs);
         }
         shapeRenderer.end();
 
@@ -196,6 +217,9 @@ public class PlayView {
         for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatTypeComponent.class).get())) {
             CatTypeComponent ct = CatTypeComponent.MAPPER.get(entity);
             if (!ct.shieldActive) continue;
+            // Cross-check: for entities with a PowerupComponent, the active type must be SHIELD
+            PowerupComponent ppCheck = PowerupComponent.MAPPER.get(entity);
+            if (ppCheck != null && ppCheck.activeType != PowerupComponent.SHIELD) continue;
             PhysicsComponent phys = PhysicsComponent.MAPPER.get(entity);
             float cx = phys.body.getPosition().x;
             float cy = phys.body.getPosition().y;

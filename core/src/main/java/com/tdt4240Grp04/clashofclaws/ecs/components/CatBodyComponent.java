@@ -12,7 +12,7 @@ public class CatBodyComponent implements Component {
     public Array<Vector2> bodyParts = new Array<>();
     public Array<Body> bodySegmentBodies = new Array<>();
     public float segmentRadius = 0.25f;
-    public float segmentSpacing = 0.1f;
+    public float segmentSpacing = 0.5f;
     public int maxLength = 10;
     public Color color;
 }
