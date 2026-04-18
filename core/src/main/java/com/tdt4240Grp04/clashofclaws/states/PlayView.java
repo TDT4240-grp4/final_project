@@ -192,7 +192,7 @@ public class PlayView {
 
         // Draw shield barrier around any cat with shieldActive
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.CYAN);
+        shapeRenderer.setColor(Color.valueOf("1a3cff"));
         for (Entity entity : engine.getEntitiesFor(Family.all(PhysicsComponent.class, CatTypeComponent.class).get())) {
             CatTypeComponent ct = CatTypeComponent.MAPPER.get(entity);
             if (!ct.shieldActive) continue;
