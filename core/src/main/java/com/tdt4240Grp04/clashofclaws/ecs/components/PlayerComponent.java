@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.ComponentMapper;
 
 public class PlayerComponent implements Component {
     public int score = 0;
+    public int kibbleCount = 0;
     public boolean isDead = false;
     public int networkID;
     public String name = "";
