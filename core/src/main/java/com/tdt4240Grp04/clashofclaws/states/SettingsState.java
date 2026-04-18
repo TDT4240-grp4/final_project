@@ -153,7 +153,7 @@ public class SettingsState extends State {
     @Override public void update(float dt) { stage.act(dt); }
 
     @Override public void render(SpriteBatch sb) {
-        Gdx.gl.glClearColor(0.12f, 0.14f, 0.20f, 1f);
+        Gdx.gl.glClearColor(0.8f, 0.93f, 1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.draw();
     }

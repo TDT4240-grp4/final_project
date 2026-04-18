@@ -34,13 +34,13 @@ public class PlayController {
         float knobSize = jSize * 0.42f;
 
         // Joystick — bottom RIGHT, styled consistently with lobby
-        Touchpad.TouchpadStyle tpStyle = new Touchpad.TouchpadStyle();
-        tpStyle.background = skin.newDrawable("white", new Color(0.1f, 0.1f, 0.15f, 0.55f));
-        tpStyle.knob = skin.newDrawable("white", Color.valueOf("1ca1e4dd"));
-        tpStyle.knob.setMinWidth(knobSize);
-        tpStyle.knob.setMinHeight(knobSize);
+        Touchpad.TouchpadStyle touchpadStyle = skin.get(Touchpad.TouchpadStyle.class);                                                                                                          
+        touchpadStyle.background.setMinWidth(jSize);                                                                                                                                            
+        touchpadStyle.background.setMinHeight(jSize);
+        touchpadStyle.knob.setMinWidth(knobSize);
+        touchpadStyle.knob.setMinHeight(knobSize);
 
-        touchpad = new Touchpad(jSize * 0.05f, tpStyle);
+        touchpad = new Touchpad(jSize * 0.05f, touchpadStyle);
         touchpad.setBounds(screenW - jSize - 24, 24, jSize, jSize);
         touchpad.addListener(new ChangeListener() {
             @Override

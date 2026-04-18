@@ -60,7 +60,7 @@ public class PlayView {
     private Label coordsLabel;
     private HashMap<Entity, Label> nameLabels;
     private boolean quitRequested = false;
-    public static boolean showCoordinates = true;
+    public static boolean showCoordinates = false;
 
     private static final float MAP_WIDTH = 200f;
     private static final float MAP_HEIGHT = 200f;
