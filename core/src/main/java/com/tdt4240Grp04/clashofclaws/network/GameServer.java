@@ -208,6 +208,22 @@ public class GameServer {
                         if (kibbles != null && kibbles.containsKey(eaten.kibbleId)) {
                             kibbles.remove(eaten.kibbleId);
                             sendToRoomExceptTCP(roomCode, connection.getID(), eaten);
+
+                            final String respawnRoom = roomCode;
+                            powerupTimer.schedule(new java.util.TimerTask() {
+                                @Override public void run() {
+                                    List<Connection> r = rooms.get(respawnRoom);
+                                    if (r == null || r.isEmpty()) return;
+                                    ConcurrentHashMap<Integer, Network.KibbleData> rk = roomKibbles.get(respawnRoom);
+                                    if (rk == null) return;
+                                    Network.KibbleData newKibble = new Network.KibbleData();
+                                    synchronized (GameServer.class) { newKibble.id = kibbleIdCounter++; }
+                                    newKibble.x = (float)(Math.random() * 200f);
+                                    newKibble.y = (float)(Math.random() * 200f);
+                                    rk.put(newKibble.id, newKibble);
+                                    for (Connection c : r) server.sendToTCP(c.getID(), newKibble);
+                                }
+                            }, 10_000L);
                         }
                     }
 

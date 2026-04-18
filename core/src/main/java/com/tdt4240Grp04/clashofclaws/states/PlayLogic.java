@@ -125,6 +125,10 @@ public class PlayLogic {
                             }
                         }
                     });
+                } else if (object instanceof Network.KibbleData) {
+                    Network.KibbleData msg = (Network.KibbleData) object;
+                    Gdx.app.postRunnable(() -> entityFactory.createKibble(msg.id, msg.x, msg.y, kibbleTexture));
+
                 } else if (object instanceof Network.KibbleInitialSync) {
                     Network.KibbleInitialSync msg = (Network.KibbleInitialSync) object;
                     Gdx.app.postRunnable(() -> {
