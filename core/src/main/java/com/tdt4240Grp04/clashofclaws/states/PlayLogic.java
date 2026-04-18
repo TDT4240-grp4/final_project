@@ -15,18 +15,14 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.tdt4240Grp04.clashofclaws.config.GameConfig;
+import com.tdt4240Grp04.clashofclaws.ecs.EntityFactory;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.StaminaComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.TextureComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.CatBodySystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.DashSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
@@ -46,6 +42,7 @@ public class PlayLogic {
     private World world;
     private Texture kibbleTexture;
     private Texture catHeadTexture;
+    private EntityFactory entityFactory;
     private GameClient gameClient;
     private HashMap<Integer, Entity> otherPlayers;
     private boolean hadOpponents = false;
@@ -69,11 +66,13 @@ public class PlayLogic {
         engine.addSystem(new RemovalSystem(world));
         engine.addSystem(new CatBodySystem(world));
 
+        entityFactory = new EntityFactory(engine, world);
+
         createMapBounds();
 
         float startX = (float) (Math.random() * (MAP_WIDTH - 20f)) + 10f;
         float startY = (float) (Math.random() * (MAP_HEIGHT - 20f)) + 10f;
-        player = spawnPlayer(startX, startY, getBodyHexColour(catIndex), name, catIndex);
+        player = entityFactory.createPlayer(startX, startY, getBodyHexColour(catIndex), name, catIndex, catHeadTexture);
 
 
         PlayerComponent pComp = player.getComponent(PlayerComponent.class);
@@ -88,7 +87,7 @@ public class PlayLogic {
                     Network.PlayerConnected msg = (Network.PlayerConnected) object;
                     Gdx.app.postRunnable(() -> {
                         if (otherPlayers.containsKey(msg.id)) return;
-                        Entity newOpponent = spawnOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
+                        Entity newOpponent = entityFactory.createOpponent(msg.id, msg.x, msg.y, getBodyHexColour(msg.catIndex), msg.catIndex, msg.name);
                         otherPlayers.put(msg.id, newOpponent);
                         hadOpponents = true;
                         Gdx.app.log(TAG, "Spawned opponent with ID: " + msg.id);
@@ -120,7 +119,7 @@ public class PlayLogic {
                     Network.KibbleInitialSync msg = (Network.KibbleInitialSync) object;
                     Gdx.app.postRunnable(() -> {
                         for (Network.KibbleData data : msg.kibbles) {
-                            spawnKibble(data.id, data.x, data.y);
+                            entityFactory.createKibble(data.id, data.x, data.y, kibbleTexture);
                         }
                     });
                 } else if (object instanceof Network.KibbleEaten) {
@@ -234,172 +233,6 @@ public class PlayLogic {
         fixtureDef.shape = shape;
         boundsBody.createFixture(fixtureDef);
         shape.dispose();
-    }
-
-    private Entity spawnPlayer(float startX, float startY, String hexColor, String playerName, int catIndex) {
-        Entity player = engine.createEntity();
-
-        CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
-        charComp.x = startX;
-        charComp.y = startY;
-        charComp.speed = GameConfig.getMaxSpeed(catIndex);
-        charComp.speedMultiplier = 1.0f;
-        player.add(charComp);
-
-        CatTypeComponent catTypeComp = engine.createComponent(CatTypeComponent.class);
-        catTypeComp.catIndex = catIndex;
-        catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
-        catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
-        catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
-        catTypeComp.startingBodyLength = GameConfig.getStartingLength(catIndex);
-        player.add(catTypeComp);
-
-        StaminaComponent staminaComp = engine.createComponent(StaminaComponent.class);
-        staminaComp.maxStamina = GameConfig.getMaxStamina(catIndex);
-        staminaComp.currentStamina = staminaComp.maxStamina;
-        staminaComp.drainRate = GameConfig.getDrainRate(catIndex);
-        staminaComp.rechargeRate = GameConfig.getRechargeRate(catIndex);
-        player.add(staminaComp);
-
-        SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
-        sizeComp.growthRate = GameConfig.getGrowthRate(catIndex);
-        player.add(sizeComp);
-
-        PlayerComponent playerComp = engine.createComponent(PlayerComponent.class);
-        playerComp.score = 0;
-        playerComp.name = playerName;
-        playerComp.networkID = -1; // Default to -1 until connected
-        player.add(playerComp);
-
-        CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
-        catBody.color = com.badlogic.gdx.graphics.Color.valueOf(hexColor);
-        catBody.maxLength = GameConfig.getStartingLength(catIndex);
-        player.add(catBody);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(charComp.x, charComp.y);
-        bodyDef.fixedRotation = true;
-        Body body = world.createBody(bodyDef);
-        body.setUserData(player);
-
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sizeComp.width / 2, sizeComp.height / 2);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 0.1f;
-        body.createFixture(fixtureDef);
-        shape.dispose();
-
-        PhysicsComponent physicsComponent = engine.createComponent(PhysicsComponent.class);
-        physicsComponent.body = body;
-        player.add(physicsComponent);
-
-        TextureComponent texComp = engine.createComponent(TextureComponent.class);
-        texComp.texture = catHeadTexture;
-        player.add(texComp);
-
-        engine.addEntity(player);
-        return player;
-    }
-
-    private Entity spawnOpponent(int networkId, float startX, float startY, String hexColor, int catIndex, String name) {
-        Entity opponent = engine.createEntity();
-
-        CharacterComponent charComp = engine.createComponent(CharacterComponent.class);
-        charComp.x = startX;
-        charComp.y = startY;
-        charComp.speed = GameConfig.getMaxSpeed(catIndex);
-        charComp.speedMultiplier = 1.0f;
-        opponent.add(charComp);
-
-        CatTypeComponent catTypeComp = engine.createComponent(CatTypeComponent.class);
-        catTypeComp.catIndex = catIndex;
-        catTypeComp.maxSpeed = GameConfig.getMaxSpeed(catIndex);
-        catTypeComp.minSpeed = GameConfig.getMinSpeed(catIndex);
-        catTypeComp.dashMultiplier = GameConfig.getDashMultiplier(catIndex);
-        catTypeComp.startingBodyLength = GameConfig.getStartingLength(catIndex);
-        opponent.add(catTypeComp);
-
-        SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
-        sizeComp.growthRate = GameConfig.getGrowthRate(catIndex);
-        opponent.add(sizeComp);
-
-        OpponentComponent opponentComp = engine.createComponent(OpponentComponent.class);
-        opponentComp.networkId = networkId;
-        opponentComp.name = name;
-        opponent.add(opponentComp);
-
-        CatBodyComponent catBody = engine.createComponent(CatBodyComponent.class);
-        catBody.color = com.badlogic.gdx.graphics.Color.valueOf(hexColor);
-        catBody.maxLength = GameConfig.getStartingLength(catIndex);
-        opponent.add(catBody);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.KinematicBody;
-        bodyDef.position.set(charComp.x, charComp.y);
-        bodyDef.fixedRotation = true;
-        Body body = world.createBody(bodyDef);
-        body.setUserData(opponent);
-
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sizeComp.width / 2, sizeComp.height / 2);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 0.1f;
-        body.createFixture(fixtureDef);
-        shape.dispose();
-
-        PhysicsComponent physicsComponent = engine.createComponent(PhysicsComponent.class);
-        physicsComponent.body = body;
-        opponent.add(physicsComponent);
-
-        TextureComponent texComp = engine.createComponent(TextureComponent.class);
-        texComp.texture = new Texture(Gdx.files.internal("cat" + (catIndex + 1) + "_head.png"));
-        opponent.add(texComp);
-
-        engine.addEntity(opponent);
-        return opponent;
-    }
-
-    private void spawnKibble(int id, float x, float y) {
-        Entity kibble = engine.createEntity();
-
-        KibbleComponent kibbleComp = engine.createComponent(KibbleComponent.class);
-        kibbleComp.id = id;
-        kibble.add(kibbleComp);
-
-        SizeComponent sizeComp = engine.createComponent(SizeComponent.class);
-        sizeComp.width = 0.5f;
-        sizeComp.height = 0.5f;
-        kibble.add(sizeComp);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;
-        bodyDef.position.set(x, y);
-        Body body = world.createBody(bodyDef);
-        body.setUserData(kibble);
-
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sizeComp.width / 2, sizeComp.height / 2);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.isSensor = true;
-        body.createFixture(fixtureDef);
-        shape.dispose();
-
-        PhysicsComponent physicsComponent = engine.createComponent(PhysicsComponent.class);
-        physicsComponent.body = body;
-        kibble.add(physicsComponent);
-
-        TextureComponent texComp = engine.createComponent(TextureComponent.class);
-        texComp.texture = kibbleTexture;
-        kibble.add(texComp);
-
-        engine.addEntity(kibble);
     }
 
     public void update(float dt) {
