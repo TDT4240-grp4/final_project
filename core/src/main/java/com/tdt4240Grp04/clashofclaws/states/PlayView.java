@@ -234,8 +234,10 @@ public class PlayView {
                     case 3:  tex = magnetTexture; break;
                     default: continue;
                 }
-                float h = 1.5f;
-                float w = h * (float) tex.getWidth() / tex.getHeight();
+                float TARGET = 1.2f;
+                float tw = tex.getWidth(), th = tex.getHeight();
+                float w = (tw >= th) ? TARGET : TARGET * tw / th;
+                float h = (th >  tw) ? TARGET : TARGET * th / tw;
                 batch.draw(tex, sp.x - w / 2, sp.y - h / 2, w, h);
             }
         }
