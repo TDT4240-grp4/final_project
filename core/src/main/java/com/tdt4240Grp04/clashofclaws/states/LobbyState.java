@@ -43,6 +43,7 @@ public class LobbyState extends State {
     private TextButton startGameBtn;
     private TextButton backBtn;
     private boolean inPrivateRoom = false;
+    private String presetRoomCode;
 
     // Room mode UI
     private Table modeTable;       // Quick Match / Create Room / Join Room buttons
@@ -50,10 +51,15 @@ public class LobbyState extends State {
     private TextField roomCodeField;
 
     public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
+        this(gsm, firebase, name, catIndex, null);
+    }
+
+    public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex, String roomCode) {
         super(gsm);
         this.playerName = name;
         this.selectedCatIndex = catIndex;
         this.firebase = firebase;
+        this.presetRoomCode = roomCode;
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         this.skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -62,7 +68,20 @@ public class LobbyState extends State {
 
         gameClient.getClient().addListener(new Listener() {
             @Override
-            public void connected(Connection connection) { /* wait for user to choose mode */ }
+            public void connected(Connection connection) {
+                if (presetRoomCode != null) {
+                    Network.JoinLobby msg = new Network.JoinLobby();
+                    msg.name = playerName;
+                    msg.catIndex = selectedCatIndex;
+                    msg.roomCode = presetRoomCode;
+                    gameClient.sendTCP(msg);
+                    Gdx.app.postRunnable(() -> {
+                        inPrivateRoom = true;
+                        backBtn.setVisible(true);
+                        statusLabel.setText("JOINING ROOM " + presetRoomCode + "...");
+                    });
+                }
+            }
 
             @Override
             public void received(Connection connection, Object object) {
@@ -171,6 +190,7 @@ public class LobbyState extends State {
         modeTable.add(quickMatchBtn).width(400).height(80).pad(10).row();
         modeTable.add(createRoomBtn).width(400).height(80).pad(10).row();
         modeTable.add(joinRoomBtn).width(400).height(80).pad(10);
+        if (presetRoomCode != null) modeTable.setVisible(false);
         stage.addActor(modeTable);
 
         // Join room via code (hidden initially)

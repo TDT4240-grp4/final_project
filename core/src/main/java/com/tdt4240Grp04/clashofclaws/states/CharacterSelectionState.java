@@ -24,8 +24,15 @@ public class CharacterSelectionState extends State {
     private Table statsTable;
     private Table previewBar;
 
+    private String roomCode;
+
     public CharacterSelectionState(StateManager gsm, FirebaseSDK firebase) {
+        this(gsm, firebase, null);
+    }
+
+    public CharacterSelectionState(StateManager gsm, FirebaseSDK firebase, String roomCode) {
         super(gsm);
+        this.roomCode = roomCode;
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -80,7 +87,7 @@ public class CharacterSelectionState extends State {
         playBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new AddNameState(gsm, firebase, currentCatIndex));
+                gsm.set(new AddNameState(gsm, firebase, currentCatIndex, roomCode));
                 Gdx.app.log("Game", "Starting game with Cat: " + currentCatIndex);
             }
         });

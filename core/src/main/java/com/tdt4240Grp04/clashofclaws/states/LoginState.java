@@ -65,8 +65,18 @@ public class LoginState extends State {
         codeField.getStyle().fontColor = Color.WHITE;
 
         TextButton arrowBtn = new TextButton("->", skin);
-        arrowBtn.getStyle().up = null; // Remove button background so it's just text on the blueRow
+        arrowBtn.getStyle().up = null;
         arrowBtn.getStyle().fontColor = Color.WHITE;
+        arrowBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                String code = codeField.getText().trim().toUpperCase();
+                if (code.length() == 6) {
+                    gsm.set(new CharacterSelectionState(gsm, firebase, code));
+                } else {
+                    codeField.setColor(Color.RED);
+                }
+            }
+        });
 
 // Add field and arrow to the BLUE ROW
 // Increased width to 350 so "ROOM CODE" is fully visible

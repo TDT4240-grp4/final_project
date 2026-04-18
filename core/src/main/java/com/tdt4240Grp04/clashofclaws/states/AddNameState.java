@@ -16,13 +16,19 @@ public class AddNameState extends State {
     private Skin skin;
     private Texture kittyTexture;
     private int selectedCatIndex;
+    private String roomCode;
 
     public AddNameState(StateManager gsm, FirebaseSDK firebase, int catIndex) {
+        this(gsm, firebase, catIndex, null);
+    }
+
+    public AddNameState(StateManager gsm, FirebaseSDK firebase, int catIndex, String roomCode) {
         super(gsm);
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         this.skin = new Skin(Gdx.files.internal("uiskin.json"));
         this.selectedCatIndex = catIndex;
+        this.roomCode = roomCode;
 
         // Load the specific cat chosen in the previous screen
         kittyTexture = new Texture("cat" + (catIndex + 1) + ".png");
@@ -61,7 +67,7 @@ public class AddNameState extends State {
                 // VALIDATION: No empty, only letters and numbers
                 if (!name.isEmpty() && name.matches("^[a-zA-Z0-9]*$")) {
                     Gdx.app.log("Game", "Starting game with: " + name);
-                    gsm.set(new LobbyState(gsm, firebase, name, selectedCatIndex));
+                    gsm.set(new LobbyState(gsm, firebase, name, selectedCatIndex, roomCode));
                 } else {
                     // Visual feedback: Shake the field or turn it red
                     nameField.setColor(Color.RED);
