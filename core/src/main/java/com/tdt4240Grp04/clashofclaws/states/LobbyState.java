@@ -140,6 +140,7 @@ public class LobbyState extends State {
                 msg.catIndex = selectedCatIndex;
                 msg.roomCode = null;
                 gameClient.sendTCP(msg);
+                inPrivateRoom = true;
                 modeTable.setVisible(false);
                 backBtn.setVisible(true);
                 statusLabel.setText("SEARCHING FOR MATCH...");

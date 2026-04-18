@@ -109,7 +109,22 @@ public class GameServer {
                                 }
                                 publicQueue.add(connection);
                                 broadcastPublicLobbyUpdate();
-                                if (publicQueue.size() >= MIN_PLAYERS_TO_START) {
+                            }
+                        }
+                    }
+
+                    else if (object instanceof Network.RequestStartGame) {
+                        String roomCode = playerRooms.get(connection.getID());
+                        if (roomCode != null) {
+                            // Private room host starts game
+                            List<Connection> room = rooms.get(roomCode);
+                            if (room != null && room.size() >= MIN_PLAYERS_TO_START) {
+                                startGame(roomCode, room);
+                            }
+                        } else {
+                            // Public queue player starts game
+                            synchronized (publicQueue) {
+                                if (publicQueue.contains(connection) && publicQueue.size() >= MIN_PLAYERS_TO_START) {
                                     int count = Math.min(publicQueue.size(), MAX_PLAYERS);
                                     List<Connection> gameRoom = new ArrayList<>(publicQueue.subList(0, count));
                                     for (int i = 0; i < count; i++) publicQueue.remove(0);
@@ -119,16 +134,6 @@ public class GameServer {
                                     startGame(code, gameRoom);
                                 }
                             }
-                        }
-                    }
-
-                    else if (object instanceof Network.RequestStartGame) {
-                        // Host requests early start for private room (min 2 players required)
-                        String roomCode = playerRooms.get(connection.getID());
-                        if (roomCode == null) return;
-                        List<Connection> room = rooms.get(roomCode);
-                        if (room != null && room.size() >= MIN_PLAYERS_TO_START) {
-                            startGame(roomCode, room);
                         }
                     }
 
