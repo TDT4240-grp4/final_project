@@ -30,6 +30,7 @@ public class PlayState extends State {
 
     @Override
     public void update(float dt) {
+        playController.update();
         playLogic.update(dt);
         if (playView.isQuitRequested()) {
             gameClient.disconnect();
