@@ -335,6 +335,11 @@ public class PlayLogic {
     private void applyPowerupEffect(int type, float duration) {
         PowerupComponent p = player.getComponent(PowerupComponent.class);
         if (p == null) return;
+        // Expire any currently active powerup cleanly before applying the new one.
+        if (p.activeType == PowerupComponent.SHIELD) {
+            CatTypeComponent ct = player.getComponent(CatTypeComponent.class);
+            if (ct != null) ct.shieldActive = false;
+        }
         p.activeType       = type;
         p.remainingSeconds = duration;
         if (type == PowerupComponent.SHIELD) {
