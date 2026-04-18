@@ -279,11 +279,9 @@ public class LobbyState extends State {
         float jSize = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.22f;
         float knobSize = jSize * 0.42f;
 
-        Touchpad.TouchpadStyle touchpadStyle = new Touchpad.TouchpadStyle();
-        // Outer ring: dark semi-transparent circle with blue border tint
-        touchpadStyle.background = skin.newDrawable("white", new Color(0.1f, 0.1f, 0.15f, 0.55f));
-        // Knob: solid blue with slight transparency
-        touchpadStyle.knob = skin.newDrawable("white", Color.valueOf("1ca1e4dd"));
+        Touchpad.TouchpadStyle touchpadStyle = skin.get(Touchpad.TouchpadStyle.class);                                                                                                          
+        touchpadStyle.background.setMinWidth(jSize);                                                                                                                                            
+        touchpadStyle.background.setMinHeight(jSize);
         touchpadStyle.knob.setMinWidth(knobSize);
         touchpadStyle.knob.setMinHeight(knobSize);
 

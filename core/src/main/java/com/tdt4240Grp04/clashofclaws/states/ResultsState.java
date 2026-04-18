@@ -34,6 +34,9 @@ public class ResultsState extends State {
         skin  = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         catTexture = new Texture(Gdx.files.internal("cat" + (data.catIndex + 1) + ".png"));
 
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+
         Table root = new Table();
         root.setFillParent(true);
         root.center();
@@ -42,27 +45,49 @@ public class ResultsState extends State {
         String titleText = data.isWinner ? "WINNER!" : "YOU DIED";
         Color  titleColor = data.isWinner ? Color.valueOf("1ca1e4") : Color.RED;
         Label titleLabel = new Label(titleText, skin);
-        titleLabel.setFontScale(2.5f);
+        titleLabel.setFontScale(H * 0.0025f);
         titleLabel.setColor(titleColor);
         titleLabel.setAlignment(Align.center);
-        root.add(titleLabel).padBottom(20).row();
+        root.add(titleLabel).padBottom(H * 0.015f).row();
 
         // Cat image + name
-        root.add(new Image(catTexture)).size(160, 160).padBottom(10).row();
+        root.add(new Image(catTexture)).size(H * 0.15f, H * 0.15f).padBottom(H * 0.008f).row();
         Label nameLabel = new Label(data.playerName, skin);
-        nameLabel.setFontScale(1.4f);
+        nameLabel.setFontScale(H * 0.0015f);
         nameLabel.setAlignment(Align.center);
-        root.add(nameLabel).padBottom(30).row();
+        root.add(nameLabel).padBottom(H * 0.02f).row();
 
-        // Stats table
+        // Stats table — header row + value row
+        float colW = W * 0.1f;
         Table stats = new Table();
         stats.setBackground(skin.newDrawable("white", new Color(0, 0, 0, 0.35f)));
-        stats.pad(30);
-        addStatRow(stats, "SCORE",   String.valueOf(data.score));
-        addStatRow(stats, "KILLS",   String.valueOf(data.kills));
-        addStatRow(stats, "KIBBLES", String.valueOf(data.kibbleCount));
-        addStatRow(stats, "TIME",    formatTime(data.survivalSeconds));
-        root.add(stats).width(500).padBottom(40).row();
+        stats.pad(H * 0.09f);
+
+        String[] headers = { "SCORE", "KILLS", "KIBBLES", "TIME" };
+        String[] values  = {
+            String.valueOf(data.score),
+            String.valueOf(data.kills),
+            String.valueOf(data.kibbleCount),
+            formatTime(data.survivalSeconds)
+        };
+
+        for (String h : headers) {
+            Label hLbl = new Label(h, skin);
+            hLbl.setFontScale(H * 0.0009f);
+            hLbl.setColor(Color.LIGHT_GRAY);
+            hLbl.setAlignment(Align.center);
+            stats.add(hLbl).width(colW).center().padRight(W * 0.06f);
+        }
+        stats.row().padTop(H * 0.04f);
+        for (String v : values) {
+            Label vLbl = new Label(v, skin);
+            vLbl.setFontScale(H * 0.0011f);
+            vLbl.setColor(Color.WHITE);
+            vLbl.setAlignment(Align.center);
+            stats.add(vLbl).width(colW).center().padRight(W * 0.06f);
+        }
+
+        root.add(stats).padBottom(H * 0.03f).row();
 
         // Back button
         TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
@@ -71,25 +96,15 @@ public class ResultsState extends State {
         btnStyle.up   = skin.newDrawable("white", Color.valueOf("1ca1e4"));
         btnStyle.down = skin.newDrawable("white", Color.valueOf("1480b0"));
         TextButton backBtn = new TextButton("BACK TO MENU", btnStyle);
+        backBtn.getLabel().setFontScale(H * 0.0012f);
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 gsm.set(new LoginState(gsm, firebase));
             }
         });
-        root.add(backBtn).width(400).height(80);
+        root.add(backBtn).width(W * 0.25f).height(H * 0.075f);
 
         stage.addActor(root);
-    }
-
-    private void addStatRow(Table t, String label, String value) {
-        Label lbl = new Label(label, skin);
-        lbl.setFontScale(1.1f);
-        lbl.setColor(Color.LIGHT_GRAY);
-        Label val = new Label(value, skin);
-        val.setFontScale(1.3f);
-        val.setColor(Color.WHITE);
-        t.add(lbl).width(200).left().padBottom(12);
-        t.add(val).width(200).right().padBottom(12).row();
     }
 
     private String formatTime(float seconds) {
@@ -101,9 +116,9 @@ public class ResultsState extends State {
     @Override public void update(float dt) { stage.act(dt); }
 
     @Override public void render(SpriteBatch sb) {
-        float r = data.isWinner ? 0.8f : 0.15f;
-        float g = data.isWinner ? 0.93f : 0.05f;
-        float b = data.isWinner ? 1f    : 0.05f;
+        float r = data.isWinner ? 0.8f  : 0.85f;
+        float g = data.isWinner ? 0.93f : 0.15f;
+        float b = data.isWinner ? 1f    : 0.15f;
         Gdx.gl.glClearColor(r, g, b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.draw();
