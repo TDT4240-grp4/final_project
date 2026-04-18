@@ -41,6 +41,7 @@ public class LobbyState extends State {
     private Label codeLabel;
     private Touchpad joystick;
     private TextButton startGameBtn;
+    private TextButton backBtn;
     private boolean inPrivateRoom = false;
 
     // Room mode UI
@@ -78,8 +79,7 @@ public class LobbyState extends State {
                 } else if (object instanceof Network.LobbyUpdate) {
                     Network.LobbyUpdate update = (Network.LobbyUpdate) object;
                     Gdx.app.postRunnable(() -> {
-                        int max = update.maxPlayers > 0 ? update.maxPlayers : 6;
-                        statusLabel.setText("WAITING... " + update.currentPlayers + "/" + max + " PLAYERS");
+                        statusLabel.setText("WAITING... " + update.currentPlayers + "/6 PLAYERS");
                         if (inPrivateRoom && startGameBtn != null) {
                             startGameBtn.setVisible(update.currentPlayers >= 2);
                         }
@@ -141,6 +141,7 @@ public class LobbyState extends State {
                 msg.roomCode = null;
                 gameClient.sendTCP(msg);
                 modeTable.setVisible(false);
+                backBtn.setVisible(true);
                 statusLabel.setText("SEARCHING FOR MATCH...");
             }
         });
@@ -153,6 +154,7 @@ public class LobbyState extends State {
                 gameClient.sendTCP(msg);
                 inPrivateRoom = true;
                 modeTable.setVisible(false);
+                backBtn.setVisible(true);
                 statusLabel.setText("WAITING FOR PLAYERS...");
             }
         });
@@ -190,14 +192,23 @@ public class LobbyState extends State {
                     gameClient.sendTCP(msg);
                     inPrivateRoom = true;
                     joinRoomTable.setVisible(false);
+                    backBtn.setVisible(true);
                     statusLabel.setText("JOINING ROOM " + code + "...");
                 } else {
                     statusLabel.setText("Code must be 6 characters");
                 }
             }
         });
+        TextButton cancelJoinBtn = new TextButton("Cancel", skin);
+        cancelJoinBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                joinRoomTable.setVisible(false);
+                modeTable.setVisible(true);
+            }
+        });
         joinRoomTable.add(roomCodeField).width(300).height(60).pad(10).row();
-        joinRoomTable.add(confirmJoinBtn).width(200).height(60);
+        joinRoomTable.add(confirmJoinBtn).width(200).height(60).pad(10).row();
+        joinRoomTable.add(cancelJoinBtn).width(200).height(60).pad(10);
         stage.addActor(joinRoomTable);
 
         // Start Game button — for private room host (hidden until 2+ players)
@@ -213,6 +224,21 @@ public class LobbyState extends State {
             }
         });
         stage.addActor(startTable);
+
+        // Back button — bottom center, shown when waiting in any mode
+        backBtn = new TextButton("BACK", skin);
+        backBtn.setVisible(false);
+        backBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                gameClient.disconnect();
+                gsm.set(new LobbyState(gsm, firebase, playerName, selectedCatIndex));
+            }
+        });
+        Table backTable = new Table();
+        backTable.setFillParent(true);
+        backTable.bottom().padBottom(30);
+        backTable.add(backBtn).width(300).height(70);
+        stage.addActor(backTable);
 
         // Joystick — RIGHT side
         Touchpad.TouchpadStyle touchpadStyle = new Touchpad.TouchpadStyle();

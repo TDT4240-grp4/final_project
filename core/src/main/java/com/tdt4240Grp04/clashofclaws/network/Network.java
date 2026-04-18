@@ -48,7 +48,6 @@ public class Network {
 
     public static class LobbyUpdate {
         public int currentPlayers;
-        public int maxPlayers;
     }
 
     public static class GameStart { }

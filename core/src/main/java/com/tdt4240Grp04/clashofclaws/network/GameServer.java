@@ -269,14 +269,12 @@ public class GameServer {
     private static void broadcastLobbyUpdate(List<Connection> room) {
         Network.LobbyUpdate update = new Network.LobbyUpdate();
         update.currentPlayers = room.size();
-        update.maxPlayers = MAX_PLAYERS;
         for (Connection c : room) server.sendToTCP(c.getID(), update);
     }
 
     private static void broadcastPublicLobbyUpdate() {
         Network.LobbyUpdate update = new Network.LobbyUpdate();
         update.currentPlayers = publicQueue.size();
-        update.maxPlayers = MAX_PLAYERS;
         for (Connection c : publicQueue) server.sendToTCP(c.getID(), update);
     }
 
