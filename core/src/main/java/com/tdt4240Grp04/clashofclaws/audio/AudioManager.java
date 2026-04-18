@@ -25,7 +25,7 @@ public class AudioManager {
     private AudioManager() {
         prefs        = Gdx.app.getPreferences(PREFS_NAME);
         soundEnabled = prefs.getBoolean(KEY_SOUND, true);
-        soundVolume  = prefs.getFloat(KEY_SVOL, 1.0f);
+        soundVolume  = prefs.getFloat(KEY_SVOL, 0.2f);
         musicEnabled = prefs.getBoolean(KEY_MUSIC, true);
         musicVolume  = prefs.getFloat(KEY_MVOL, 0.2f);
     }
