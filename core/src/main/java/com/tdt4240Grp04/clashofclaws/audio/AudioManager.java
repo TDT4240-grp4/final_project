@@ -21,6 +21,9 @@ public class AudioManager {
     private float   musicVolume;
 
     private Music currentMusic;
+    private Sound eatSound;
+    private Sound dieSound;
+    private Sound dashSound;
 
     private AudioManager() {
         prefs        = Gdx.app.getPreferences(PREFS_NAME);
@@ -33,6 +36,24 @@ public class AudioManager {
     public static AudioManager getInstance() {
         if (instance == null) instance = new AudioManager();
         return instance;
+    }
+
+    // --- Game sounds (loaded once at app start) ---
+
+    public void loadGameSounds() {
+        eatSound  = Gdx.audio.newSound(Gdx.files.internal("eat.mp3"));
+        dieSound  = Gdx.audio.newSound(Gdx.files.internal("die.mp3"));
+        dashSound = Gdx.audio.newSound(Gdx.files.internal("dash.mp3"));
+    }
+
+    public void playEatSound()  { playSound(eatSound); }
+    public void playDieSound()  { playSound(dieSound); }
+    public void playDashSound() { playSound(dashSound); }
+
+    public void disposeGameSounds() {
+        if (eatSound  != null) { eatSound.dispose();  eatSound  = null; }
+        if (dieSound  != null) { dieSound.dispose();  dieSound  = null; }
+        if (dashSound != null) { dashSound.dispose(); dashSound = null; }
     }
 
     // --- Sound effects ---

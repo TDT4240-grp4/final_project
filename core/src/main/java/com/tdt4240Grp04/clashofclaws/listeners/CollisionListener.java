@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -25,17 +24,15 @@ public class CollisionListener implements ContactListener {
 
     private Engine engine;
     private GameClient gameClient;
-    private Sound eatSound;
     private ComponentMapper<KibbleComponent> kcm = ComponentMapper.getFor(KibbleComponent.class);
     private ComponentMapper<PlayerComponent> pcm = ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<CatBodyComponent> cbcm = ComponentMapper.getFor(CatBodyComponent.class);
     private ComponentMapper<OpponentComponent> ocm = ComponentMapper.getFor(OpponentComponent.class);
     private ComponentMapper<SizeComponent> scm = ComponentMapper.getFor(SizeComponent.class);
 
-    public CollisionListener(Engine engine, GameClient gameClient, Sound eatSound) {
+    public CollisionListener(Engine engine, GameClient gameClient) {
         this.engine = engine;
         this.gameClient = gameClient;
-        this.eatSound = eatSound;
     }
 
     private boolean isCat(Entity e) {
@@ -115,7 +112,7 @@ public class CollisionListener implements ContactListener {
 
         if (pcm.has(cat)) {
             pcm.get(cat).kibbleCount++;
-            AudioManager.getInstance().playSound(eatSound);
+            AudioManager.getInstance().playEatSound();
             Network.KibbleEaten msg = new Network.KibbleEaten();
             msg.kibbleId = kcm.get(kibble).id;
             msg.eatenByPlayerId = pcm.get(cat).networkID;

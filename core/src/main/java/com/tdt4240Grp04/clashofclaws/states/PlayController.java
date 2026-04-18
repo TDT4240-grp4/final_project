@@ -3,7 +3,6 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -25,11 +24,9 @@ public class PlayController {
     private TextButton dashButton;
     private Entity player;
     private boolean spaceWasPressed = false;
-    private Sound dashSound;
 
     public PlayController(Entity player, Stage stage, Skin skin) {
         this.player = player;
-        dashSound = Gdx.audio.newSound(Gdx.files.internal("dash.mp3"));
 
         int screenW = Gdx.graphics.getWidth();
 
@@ -96,6 +93,7 @@ public class PlayController {
         StaminaComponent stamina = StaminaComponent.MAPPER.get(player);
         if (stamina != null) {
             if (spaceNow && stamina.currentStamina > 0) {
+                if (!spaceWasPressed) AudioManager.getInstance().playDashSound();
                 stamina.isDashing = true;
             } else if (!spaceNow && spaceWasPressed) {
                 stamina.isDashing = false;
@@ -108,7 +106,7 @@ public class PlayController {
         StaminaComponent stamina = StaminaComponent.MAPPER.get(player);
         if (stamina != null && stamina.currentStamina > 0) {
             stamina.isDashing = true;
-            AudioManager.getInstance().playSound(dashSound);
+            AudioManager.getInstance().playDashSound();
         }
     }
 
@@ -126,7 +124,5 @@ public class PlayController {
         return drawable;
     }
 
-    public void dispose() {
-        if (dashSound != null) dashSound.dispose();
-    }
+    public void dispose() { }
 }

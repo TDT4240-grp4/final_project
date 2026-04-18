@@ -25,6 +25,7 @@ public class ClashOfClaws extends ApplicationAdapter {
         gsm = new StateManager();
         music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
         AudioManager.getInstance().playMusic(music);
+        AudioManager.getInstance().loadGameSounds();
         gsm.push(new LoginState(gsm, firebase));
     }
 
@@ -44,5 +45,6 @@ public class ClashOfClaws extends ApplicationAdapter {
         if (batch != null) batch.dispose();
         if (gsm != null) gsm.dispose();
         if (music != null) music.dispose();
+        AudioManager.getInstance().disposeGameSounds();
     }
 }
