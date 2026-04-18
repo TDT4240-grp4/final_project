@@ -81,7 +81,7 @@ public class AudioManager {
         prefs.flush();
         if (currentMusic != null) {
             if (enabled) { currentMusic.setVolume(musicVolume); currentMusic.play(); }
-            else         { currentMusic.stop(); }
+            else         { currentMusic.pause(); }
         }
     }
 
