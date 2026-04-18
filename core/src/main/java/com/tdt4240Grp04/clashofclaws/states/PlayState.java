@@ -38,10 +38,10 @@ public class PlayState extends State {
             return;
         }
         if (playLogic.isPlayerDead()) {
-            gsm.set(new GameOverState(gsm, firebase));
+            gsm.set(new ResultsState(gsm, firebase, buildResults(false)));
         }
         else if (playLogic.hasPlayerWon()) {
-            gsm.set(new WinnerState(gsm, firebase));
+            gsm.set(new ResultsState(gsm, firebase, buildResults(true)));
         }
     }
 
@@ -62,5 +62,17 @@ public class PlayState extends State {
         playView.dispose();
         playController.dispose();
         playLogic.dispose();
+    }
+
+    private ResultsData buildResults(boolean isWinner) {
+        return new ResultsData(
+            isWinner,
+            playerName,
+            catIndex,
+            playLogic.getScore(),
+            playLogic.getKillCount(),
+            playLogic.getKibbleCount(),
+            playLogic.getSurvivalSeconds()
+        );
     }
 }
