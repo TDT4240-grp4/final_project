@@ -166,7 +166,6 @@ public class PlayLogic {
                             if (pComp != null) {
                                 loserScore = pComp.score;
                                 pComp.isDead = true;
-                                AudioManager.getInstance().playDieSound();
                                 Gdx.app.log(TAG, "2222222222");
                             }
                         } else {

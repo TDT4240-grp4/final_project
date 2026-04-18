@@ -3,6 +3,7 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 
@@ -38,6 +39,7 @@ public class PlayState extends State {
             return;
         }
         if (playLogic.isPlayerDead()) {
+            AudioManager.getInstance().playDieSound();
             gsm.set(new ResultsState(gsm, firebase, buildResults(false)));
         }
         else if (playLogic.hasPlayerWon()) {
