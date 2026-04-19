@@ -53,6 +53,8 @@ public class PlayLogic {
     private boolean hadOpponents = false;
     private java.util.concurrent.ConcurrentHashMap<Integer, Network.PowerupSpawned> activePowerups
         = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final float GAME_DURATION = 3f * 60f;
+    private float gameTimer = 0f;
     private int killCount = 0;
     private float survivalSeconds = 0f;
     private Listener networkListener;
@@ -261,6 +263,7 @@ public class PlayLogic {
     }
 
     public void update(float dt) {
+        gameTimer += dt;
         if (!isPlayerDead()) survivalSeconds += dt;
         world.step(Math.min(dt, 1f / 30f), 6, 2);
         engine.update(dt);
@@ -368,6 +371,17 @@ public class PlayLogic {
         gameClient.disconnect();
     }
 
+    public boolean isTimeUp() { return gameTimer >= GAME_DURATION; }
+    public float getRemainingTime() { return Math.max(0f, GAME_DURATION - gameTimer); }
+    public boolean hasHighestScore() {
+        PlayerComponent pc = player.getComponent(PlayerComponent.class);
+        int myScore = pc != null ? pc.score : 0;
+        for (Entity e : engine.getEntitiesFor(Family.all(OpponentComponent.class).get())) {
+            OpponentComponent opp = e.getComponent(OpponentComponent.class);
+            if (opp != null && opp.score > myScore) return false;
+        }
+        return true;
+    }
     public int getKillCount()        { return killCount; }
     public float getSurvivalSeconds() { return survivalSeconds; }
     public int getScore() {

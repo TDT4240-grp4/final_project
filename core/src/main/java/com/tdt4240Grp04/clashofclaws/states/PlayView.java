@@ -56,6 +56,7 @@ public class PlayView {
     private Label scoreLabel;
     private Label staminaLabel;
     private Label powerupLabel;
+    private Label timerLabel;
     private Table leaderboardTable;
     private Label coordsLabel;
     private HashMap<Entity, Label> nameLabels;
@@ -102,6 +103,16 @@ public class PlayView {
         table.add(powerupLabel).padLeft(W * 0.015f).padTop(H * 0.008f);
 
         stage.addActor(table);
+
+        // Timer — top center
+        timerLabel = new Label("3:00", skin);
+        timerLabel.setFontScale(0.6f * uiScale);
+        timerLabel.setColor(Color.WHITE);
+        Table timerTable = new Table();
+        timerTable.top().center();
+        timerTable.setFillParent(true);
+        timerTable.add(timerLabel).padTop(H * 0.025f);
+        stage.addActor(timerTable);
 
         // Leaderboard — top right
         leaderboardTable = new Table();
@@ -279,6 +290,13 @@ public class PlayView {
         if (pc != null) {
             scoreLabel.setText("Score: " + pc.score);
         }
+
+        // Update countdown timer
+        float remaining = playLogic.getRemainingTime();
+        int mins = (int)(remaining / 60);
+        int secs = (int)(remaining % 60);
+        timerLabel.setText(String.format("%d:%02d", mins, secs));
+        timerLabel.setColor(remaining <= 30f ? Color.RED : Color.WHITE);
 
         // Update coordinates label
         PhysicsComponent playerPhysCoords = PhysicsComponent.MAPPER.get(player);

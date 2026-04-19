@@ -45,6 +45,9 @@ public class PlayState extends State {
         else if (playLogic.hasPlayerWon()) {
             gsm.set(new ResultsState(gsm, firebase, buildResults(true)));
         }
+        else if (playLogic.isTimeUp()) {
+            gsm.set(new ResultsState(gsm, firebase, buildResults(playLogic.hasHighestScore())));
+        }
     }
 
     @Override
