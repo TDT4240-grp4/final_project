@@ -173,6 +173,7 @@ public class EntityFactory {
         bodyDef.fixedRotation = true;
         Body body = world.createBody(bodyDef);
         body.setUserData(owner);
+        body.setSleepingAllowed(false);
 
         PolygonShape shape = new PolygonShape();
         shape.setAsBox(sizeComp.width / 2, sizeComp.height / 2);
