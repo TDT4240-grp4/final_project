@@ -109,9 +109,9 @@ public class PlayView {
         timerLabel.setFontScale(0.6f * uiScale);
         timerLabel.setColor(Color.WHITE);
         Table timerTable = new Table();
-        timerTable.top().center();
+        timerTable.top();
         timerTable.setFillParent(true);
-        timerTable.add(timerLabel).padTop(H * 0.025f);
+        timerTable.add(timerLabel).expandX().center().padTop(H * 0.025f);
         stage.addActor(timerTable);
 
         // Leaderboard — top right
