@@ -123,8 +123,14 @@ public class CollisionListener implements ContactListener {
         }
     }
 
+    private boolean isInvulnerable(Entity e) {
+        CatTypeComponent ct = ctcm.get(e);
+        return ct != null && ct.invulnerableTimer > 0f;
+    }
+
     private void handleCatCollision(Entity catA, Entity catB, Fixture fixtureA, Fixture fixtureB) {
         if (isCatDead(catA) || isCatDead(catB)) return;
+        if (isInvulnerable(catA) || isInvulnerable(catB)) return;
 
         int scoreA = getCatScore(catA);
         int scoreB = getCatScore(catB);
@@ -136,9 +142,9 @@ public class CollisionListener implements ContactListener {
             // A's head hit B's body → A (head) dies, B (body) wins
             if (!isHeadMovingToward(fixtureA, fixtureB)) return;
             Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Body)");
-            if (tryAbsorbWithShield(catA)) return;  // shield protects dying cat (head)
+            if (tryAbsorbWithShield(catA)) return;
             setCatDead(catA);
-            if (pcm.has(catA) || pcm.has(catB)) {
+            if (pcm.has(catA)) {  // only loser's machine sends — prevents double-kill
                 Network.CatDefeated msg = new Network.CatDefeated();
                 msg.winnerId = getCatId(catB);
                 msg.loserId = getCatId(catA);
@@ -148,9 +154,9 @@ public class CollisionListener implements ContactListener {
             // B's head hit A's body → B (head) dies, A (body) wins
             if (!isHeadMovingToward(fixtureB, fixtureA)) return;
             Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Body)");
-            if (tryAbsorbWithShield(catB)) return;  // shield protects dying cat (head)
+            if (tryAbsorbWithShield(catB)) return;
             setCatDead(catB);
-            if (pcm.has(catA) || pcm.has(catB)) {
+            if (pcm.has(catB)) {  // only loser's machine sends — prevents double-kill
                 Network.CatDefeated msg = new Network.CatDefeated();
                 msg.winnerId = getCatId(catA);
                 msg.loserId = getCatId(catB);
@@ -158,41 +164,49 @@ public class CollisionListener implements ContactListener {
             }
         } else if (isAHead && isBHead) {
             if (scoreA > scoreB) {
-                Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Head)");
-                if (tryAbsorbWithShield(catB)) return;
-                setCatDead(catB);
-                if (pcm.has(catA) || pcm.has(catB)) {
-                    Network.CatDefeated msg = new Network.CatDefeated();
-                    msg.winnerId = getCatId(catA);
-                    msg.loserId = getCatId(catB);
-                    gameClient.sendTCP(msg);
-                }
-            } else if (scoreB > scoreA) {
+                // A has higher score → A dies, B (lower score) wins
                 Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Head)");
                 if (tryAbsorbWithShield(catA)) return;
                 setCatDead(catA);
-                if (pcm.has(catA) || pcm.has(catB)) {
+                if (pcm.has(catA)) {  // only loser's machine sends
                     Network.CatDefeated msg = new Network.CatDefeated();
                     msg.winnerId = getCatId(catB);
                     msg.loserId = getCatId(catA);
                     gameClient.sendTCP(msg);
                 }
-            } else {
-                // Equal score tie — both die
-                Gdx.app.log("Collision", "Head vs Head tie — both cats die");
-                setCatDead(catA);
+            } else if (scoreB > scoreA) {
+                // B has higher score → B dies, A (lower score) wins
+                Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Head)");
+                if (tryAbsorbWithShield(catB)) return;
                 setCatDead(catB);
-                if (pcm.has(catA)) {
+                if (pcm.has(catB)) {  // only loser's machine sends
                     Network.CatDefeated msg = new Network.CatDefeated();
-                    msg.winnerId = -1;
-                    msg.loserId = getCatId(catA);
-                    gameClient.sendTCP(msg);
-                }
-                if (pcm.has(catB)) {
-                    Network.CatDefeated msg = new Network.CatDefeated();
-                    msg.winnerId = -1;
+                    msg.winnerId = getCatId(catA);
                     msg.loserId = getCatId(catB);
                     gameClient.sendTCP(msg);
+                }
+            } else {
+                // Equal score tie — both die unless shielded
+                Gdx.app.log("Collision", "Head vs Head tie — both cats die");
+                boolean aAbsorbed = tryAbsorbWithShield(catA);
+                boolean bAbsorbed = tryAbsorbWithShield(catB);
+                if (!aAbsorbed) {
+                    setCatDead(catA);
+                    if (pcm.has(catA)) {
+                        Network.CatDefeated msg = new Network.CatDefeated();
+                        msg.winnerId = -1;
+                        msg.loserId = getCatId(catA);
+                        gameClient.sendTCP(msg);
+                    }
+                }
+                if (!bAbsorbed) {
+                    setCatDead(catB);
+                    if (pcm.has(catB)) {
+                        Network.CatDefeated msg = new Network.CatDefeated();
+                        msg.winnerId = -1;
+                        msg.loserId = getCatId(catB);
+                        gameClient.sendTCP(msg);
+                    }
                 }
             }
         }
@@ -213,6 +227,7 @@ public class CollisionListener implements ContactListener {
         CatTypeComponent catType = ctcm.get(e);
         if (catType != null && catType.shieldActive) {
             catType.shieldActive = false;
+            catType.invulnerableTimer = 1f;
             return true;
         }
         return false;

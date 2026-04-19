@@ -10,6 +10,7 @@ public class CatTypeComponent implements Component {
     public float dashMultiplier = 1.4f;
     public int startingBodyLength = 1;
     public boolean shieldActive = false;
+    public float invulnerableTimer = 0f;
 
     public static final ComponentMapper<CatTypeComponent> MAPPER =
         ComponentMapper.getFor(CatTypeComponent.class);

@@ -11,11 +11,14 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 
 public class PowerupSystem extends EntitySystem {
     private ImmutableArray<Entity> players;
+    private ImmutableArray<Entity> allCats;
 
     @Override
     public void addedToEngine(Engine engine) {
         players = engine.getEntitiesFor(
             Family.all(PlayerComponent.class, PowerupComponent.class).get());
+        allCats = engine.getEntitiesFor(
+            Family.all(CatTypeComponent.class).get());
     }
 
     @Override
@@ -27,6 +30,13 @@ public class PowerupSystem extends EntitySystem {
             p.remainingSeconds -= dt;
             if (p.remainingSeconds <= 0f) {
                 expireEffect(e, p);
+            }
+        }
+
+        for (Entity e : allCats) {
+            CatTypeComponent ct = CatTypeComponent.MAPPER.get(e);
+            if (ct.invulnerableTimer > 0f) {
+                ct.invulnerableTimer = Math.max(0f, ct.invulnerableTimer - dt);
             }
         }
     }
