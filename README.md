@@ -6,14 +6,21 @@ A competitive real-time multiplayer battle royale game built with LibGDX. Contro
 
 ## Gameplay
 
-Players control a cat that grows longer as it eats kibbles scattered across the map. Cut off other cats with your body to eliminate them, collect powerups for advantages, and use your dash ability strategically. The last surviving cat wins.
+Players control a cat that grows longer as it eats kibbles scattered across the map. Lure opponents into running their head into your body to eliminate them, collect powerups for advantages, and use your dash ability strategically. The game lasts 3 minutes — if opponents remain when time runs out, the player with the highest score wins.
+
+### Match End Conditions
+| Condition | Outcome |
+|-----------|---------|
+| All opponents eliminated | Last surviving cat wins immediately |
+| 3-minute timer expires | Player with the highest score wins |
 
 ### Collision Rules
 | Situation | Outcome |
 |-----------|---------|
-| Head hits opponent's body | Opponent is eliminated |
+| Head hits opponent's body | **Attacker (head) is eliminated** — body cat wins |
 | Head-to-head (higher score) | Lower score cat is eliminated |
 | Head-to-head (equal score) | Both cats are eliminated |
+| Shielded cat takes a fatal hit | Shield absorbs the hit (consumed); cat survives |
 
 ### Powerups
 | Powerup | Effect | Duration |
