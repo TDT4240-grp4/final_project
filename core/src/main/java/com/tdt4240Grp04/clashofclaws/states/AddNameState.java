@@ -16,13 +16,19 @@ public class AddNameState extends State {
     private Skin skin;
     private Texture kittyTexture;
     private int selectedCatIndex;
+    private String roomCode;
 
     public AddNameState(StateManager gsm, FirebaseSDK firebase, int catIndex) {
+        this(gsm, firebase, catIndex, null);
+    }
+
+    public AddNameState(StateManager gsm, FirebaseSDK firebase, int catIndex, String roomCode) {
         super(gsm);
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         this.skin = new Skin(Gdx.files.internal("uiskin.json"));
         this.selectedCatIndex = catIndex;
+        this.roomCode = roomCode;
 
         // Load the specific cat chosen in the previous screen
         kittyTexture = new Texture("cat" + (catIndex + 1) + ".png");
@@ -31,21 +37,24 @@ public class AddNameState extends State {
         Table mainTable = new Table();
         mainTable.setFillParent(true);
 
-        // 1. Title
+        float W = Gdx.graphics.getWidth();
+        float H = Gdx.graphics.getHeight();
+
         Label title = new Label("NAME YOUR KITTY", skin);
-        title.setFontScale(1.8f);
+        title.setFontScale(0.9f);
         title.setColor(Color.BLACK);
 
-        // 2. Input Field
         final TextField nameField = new TextField("", skin);
         nameField.setMessageText("Kitty Name...");
+        nameField.getStyle().font.getData().setScale(0.75f);
+        nameField.setAlignment(com.badlogic.gdx.utils.Align.center);
 
-        // 3. Buttons
-        TextButton returnBtn = new TextButton("BACK", skin);
+        TextButton returnBtn = new TextButton("Back", skin);
+        returnBtn.getLabel().setFontScale(0.55f);
         TextButton letsClawBtn = new TextButton("LET'S CLAW", skin);
-        letsClawBtn.setColor(Color.valueOf("1ca1e4")); // Your blue theme
+        letsClawBtn.getLabel().setFontScale(0.55f);
+        letsClawBtn.setColor(Color.valueOf("1ca1e4"));
 
-        // --- BUTTON LOGIC ---
         returnBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -57,26 +66,23 @@ public class AddNameState extends State {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 String name = nameField.getText().trim();
-
-                // VALIDATION: No empty, only letters and numbers
                 if (!name.isEmpty() && name.matches("^[a-zA-Z0-9]*$")) {
                     Gdx.app.log("Game", "Starting game with: " + name);
-                    gsm.set(new LobbyState(gsm, firebase, name, selectedCatIndex));
+                    gsm.set(new LobbyState(gsm, firebase, name, selectedCatIndex, roomCode));
                 } else {
-                    // Visual feedback: Shake the field or turn it red
                     nameField.setColor(Color.RED);
                 }
             }
         });
 
-        // --- ASSEMBLE ---
-        mainTable.add(title).padBottom(20).row();
-        mainTable.add(kittyImage).size(200, 200).padBottom(20).row();
-        mainTable.add(nameField).width(400).height(60).padBottom(30).row();
+        float btnH = H * 0.1f;
+        mainTable.add(title).padBottom(H * 0.03f).row();
+        mainTable.add(kittyImage).size(H * 0.35f).padBottom(H * 0.03f).row();
+        mainTable.add(nameField).width(W * 0.4f).height(btnH).padBottom(H * 0.04f).row();
 
         Table btnRow = new Table();
-        btnRow.add(returnBtn).width(200).height(60).padRight(20);
-        btnRow.add(letsClawBtn).width(400).height(60);
+        btnRow.add(returnBtn).width(W * 0.18f).height(btnH).padRight(20);
+        btnRow.add(letsClawBtn).width(W * 0.32f).height(btnH);
 
         mainTable.add(btnRow);
         stage.addActor(mainTable);

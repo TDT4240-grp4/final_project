@@ -21,11 +21,33 @@ public class Network {
         kryo.register(LobbyUpdate.class);
         kryo.register(GameStart.class);
         kryo.register(ClientReady.class);
+        kryo.register(CreateRoom.class);
+        kryo.register(RoomJoined.class);
+        kryo.register(RoomError.class);
+        kryo.register(RequestStartGame.class);
+        kryo.register(PowerupSpawned.class);
+        kryo.register(PowerupDespawned.class);
+        kryo.register(PowerupCollected.class);
+        kryo.register(PowerupEffect.class);
     }
 
     public static class JoinLobby {
         public String name;
         public int catIndex;
+        public String roomCode; // null = public matchmaking
+    }
+
+    public static class CreateRoom {
+        public String name;
+        public int catIndex;
+    }
+
+    public static class RoomJoined {
+        public String roomCode; // server sends back the generated or matched code
+    }
+
+    public static class RoomError {
+        public String message; // e.g. "Room not found"
     }
 
     public static class LobbyUpdate {
@@ -35,6 +57,8 @@ public class Network {
     public static class GameStart { }
 
     public static class ClientReady { }
+
+    public static class RequestStartGame { } // host requests early start (private rooms)
 
     public static class KibbleData {
         public int id;
@@ -70,5 +94,24 @@ public class Network {
     public static class CatDefeated {
         public int winnerId;
         public int loserId;
+    }
+
+    public static class PowerupSpawned {
+        public int   powerupId;
+        public int   type;  // 1=speed, 2=shield, 3=magnet
+        public float x, y;
+    }
+
+    public static class PowerupDespawned {
+        public int powerupId;
+    }
+
+    public static class PowerupCollected {
+        public int powerupId;
+    }
+
+    public static class PowerupEffect {
+        public int   type;
+        public float duration;
     }
 }

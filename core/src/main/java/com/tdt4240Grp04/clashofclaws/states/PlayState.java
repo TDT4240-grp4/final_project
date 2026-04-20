@@ -3,6 +3,7 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 
@@ -11,12 +12,18 @@ public class PlayState extends State {
     private PlayView playView;
     private PlayController playController;
     private FirebaseSDK firebase;
+    private GameClient gameClient;
+    private String playerName;
+    private int catIndex;
 
     public PlayState(StateManager gsm, FirebaseSDK firebase, GameClient gameClient, String name, int catIndex) {
         super(gsm);
         this.firebase = firebase;
+        this.gameClient = gameClient;
+        this.playerName = name;
+        this.catIndex = catIndex;
         playLogic = new PlayLogic(gameClient, name, catIndex);
-        playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer());
+        playView = new PlayView(playLogic.getEngine(), playLogic.getPlayer(), playLogic);
         playController = new PlayController(playLogic.getPlayer(), playView.getStage(), playView.getSkin());
 
         Gdx.input.setInputProcessor(playView.getStage());
@@ -24,12 +31,22 @@ public class PlayState extends State {
 
     @Override
     public void update(float dt) {
+        playController.update();
         playLogic.update(dt);
+        if (playView.isQuitRequested()) {
+            gameClient.disconnect();
+            gsm.set(new LobbyState(gsm, firebase, playerName, catIndex));
+            return;
+        }
         if (playLogic.isPlayerDead()) {
-            gsm.set(new GameOverState(gsm, firebase));
+            AudioManager.getInstance().playDieSound();
+            gsm.set(new ResultsState(gsm, firebase, buildResults(false)));
         }
         else if (playLogic.hasPlayerWon()) {
-            gsm.set(new WinnerState(gsm, firebase));
+            gsm.set(new ResultsState(gsm, firebase, buildResults(true)));
+        }
+        else if (playLogic.isTimeUp()) {
+            gsm.set(new ResultsState(gsm, firebase, buildResults(playLogic.hasHighestScore())));
         }
     }
 
@@ -50,5 +67,17 @@ public class PlayState extends State {
         playView.dispose();
         playController.dispose();
         playLogic.dispose();
+    }
+
+    private ResultsData buildResults(boolean isWinner) {
+        return new ResultsData(
+            isWinner,
+            playerName,
+            catIndex,
+            playLogic.getScore(),
+            playLogic.getKillCount(),
+            playLogic.getKibbleCount(),
+            playLogic.getSurvivalSeconds()
+        );
     }
 }

@@ -5,16 +5,20 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatBodyComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.KibbleComponent;
+import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.MarkedForRemovalComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.OpponentComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
+import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 import com.tdt4240Grp04.clashofclaws.network.Network;
 
@@ -26,6 +30,8 @@ public class CollisionListener implements ContactListener {
     private ComponentMapper<PlayerComponent> pcm = ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<CatBodyComponent> cbcm = ComponentMapper.getFor(CatBodyComponent.class);
     private ComponentMapper<OpponentComponent> ocm = ComponentMapper.getFor(OpponentComponent.class);
+    private ComponentMapper<SizeComponent> scm = ComponentMapper.getFor(SizeComponent.class);
+    private ComponentMapper<CatTypeComponent> ctcm = ComponentMapper.getFor(CatTypeComponent.class);
 
     public CollisionListener(Engine engine, GameClient gameClient) {
         this.engine = engine;
@@ -101,12 +107,15 @@ public class CollisionListener implements ContactListener {
 
         CatBodyComponent body = cbcm.get(cat);
         if (body != null) {
-            body.maxLength += 5;
+            SizeComponent sizeComp = scm.get(cat);
+            body.maxLength = Math.min(body.maxLength + (int)((sizeComp != null) ? sizeComp.growthRate : 5), 500);
         }
 
         addCatScore(cat, 10);
 
         if (pcm.has(cat)) {
+            pcm.get(cat).kibbleCount++;
+            AudioManager.getInstance().playEatSound();
             Network.KibbleEaten msg = new Network.KibbleEaten();
             msg.kibbleId = kcm.get(kibble).id;
             msg.eatenByPlayerId = pcm.get(cat).networkID;
@@ -114,8 +123,14 @@ public class CollisionListener implements ContactListener {
         }
     }
 
+    private boolean isInvulnerable(Entity e) {
+        CatTypeComponent ct = ctcm.get(e);
+        return ct != null && ct.invulnerableTimer > 0f;
+    }
+
     private void handleCatCollision(Entity catA, Entity catB, Fixture fixtureA, Fixture fixtureB) {
         if (isCatDead(catA) || isCatDead(catB)) return;
+        if (isInvulnerable(catA) || isInvulnerable(catB)) return;
 
         int scoreA = getCatScore(catA);
         int scoreB = getCatScore(catB);
@@ -124,18 +139,24 @@ public class CollisionListener implements ContactListener {
         Gdx.app.log("Collision", "Cat-Cat collision detected between two cats with scores " + scoreA + " and " + scoreB);
 
         if (isAHead && !isBHead) {
+            // A's head hit B's body → A (head) dies, B (body) wins
+            if (!isHeadMovingToward(fixtureA, fixtureB)) return;
             Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Body)");
+            if (tryAbsorbWithShield(catA)) return;
             setCatDead(catA);
-            if(pcm.has(catA)){
+            if (pcm.has(catA)) {  // only loser's machine sends — prevents double-kill
                 Network.CatDefeated msg = new Network.CatDefeated();
                 msg.winnerId = getCatId(catB);
                 msg.loserId = getCatId(catA);
                 gameClient.sendTCP(msg);
             }
         } else if (!isAHead && isBHead) {
+            // B's head hit A's body → B (head) dies, A (body) wins
+            if (!isHeadMovingToward(fixtureB, fixtureA)) return;
             Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Body)");
+            if (tryAbsorbWithShield(catB)) return;
             setCatDead(catB);
-            if(pcm.has(catB)){
+            if (pcm.has(catB)) {  // only loser's machine sends — prevents double-kill
                 Network.CatDefeated msg = new Network.CatDefeated();
                 msg.winnerId = getCatId(catA);
                 msg.loserId = getCatId(catB);
@@ -143,43 +164,77 @@ public class CollisionListener implements ContactListener {
             }
         } else if (isAHead && isBHead) {
             if (scoreA > scoreB) {
+                // A has higher score → A dies, B (lower score) wins
                 Gdx.app.log("Collision", "Cat B defeated Cat A (Head vs Head)");
+                if (tryAbsorbWithShield(catA)) return;
                 setCatDead(catA);
-                if(pcm.has(catA)){
+                if (pcm.has(catA)) {  // only loser's machine sends
                     Network.CatDefeated msg = new Network.CatDefeated();
                     msg.winnerId = getCatId(catB);
                     msg.loserId = getCatId(catA);
                     gameClient.sendTCP(msg);
                 }
             } else if (scoreB > scoreA) {
+                // B has higher score → B dies, A (lower score) wins
                 Gdx.app.log("Collision", "Cat A defeated Cat B (Head vs Head)");
+                if (tryAbsorbWithShield(catB)) return;
                 setCatDead(catB);
-                if(pcm.has(catB)){
+                if (pcm.has(catB)) {  // only loser's machine sends
                     Network.CatDefeated msg = new Network.CatDefeated();
                     msg.winnerId = getCatId(catA);
                     msg.loserId = getCatId(catB);
                     gameClient.sendTCP(msg);
                 }
+            } else {
+                // Equal score tie — both die unless shielded
+                Gdx.app.log("Collision", "Head vs Head tie — both cats die");
+                boolean aAbsorbed = tryAbsorbWithShield(catA);
+                boolean bAbsorbed = tryAbsorbWithShield(catB);
+                if (!aAbsorbed) {
+                    setCatDead(catA);
+                    if (pcm.has(catA)) {
+                        Network.CatDefeated msg = new Network.CatDefeated();
+                        msg.winnerId = -1;
+                        msg.loserId = getCatId(catA);
+                        gameClient.sendTCP(msg);
+                    }
+                }
+                if (!bAbsorbed) {
+                    setCatDead(catB);
+                    if (pcm.has(catB)) {
+                        Network.CatDefeated msg = new Network.CatDefeated();
+                        msg.winnerId = -1;
+                        msg.loserId = getCatId(catB);
+                        gameClient.sendTCP(msg);
+                    }
+                }
             }
         }
     }
 
-    private void handleSelfCollision(Entity cat, Fixture fixtureA, Fixture fixtureB) {
-        boolean isAHead = !fixtureA.isSensor();
-        boolean isBHead = !fixtureB.isSensor();
+    // Returns true if the head fixture's velocity points toward the target fixture.
+    // This distinguishes a frontal head strike from an opponent's body swiping the head's side.
+    private boolean isHeadMovingToward(Fixture headFixture, Fixture targetFixture) {
+        Vector2 vel = headFixture.getBody().getLinearVelocity();
+        Vector2 headPos = headFixture.getBody().getPosition();
+        Vector2 targetPos = targetFixture.getBody().getPosition();
+        float dx = targetPos.x - headPos.x;
+        float dy = targetPos.y - headPos.y;
+        return vel.dot(dx, dy) > 0;
+    }
 
-        if (isAHead != isBHead) {
-            com.badlogic.gdx.physics.box2d.Body bodyFixture = isAHead ? fixtureB.getBody() : fixtureA.getBody();
-            CatBodyComponent catBody = cbcm.get(cat);
-
-            if (catBody != null) {
-                int segmentIndex = catBody.bodySegmentBodies.indexOf(bodyFixture, true);
-
-                if (segmentIndex >= 10) {
-                    setCatDead(cat);
-                }
-            }
+    private boolean tryAbsorbWithShield(Entity e) {
+        CatTypeComponent catType = ctcm.get(e);
+        if (catType != null && catType.shieldActive) {
+            catType.shieldActive = false;
+            catType.invulnerableTimer = 1f;
+            return true;
         }
+        return false;
+    }
+
+    private void handleSelfCollision(Entity cat, Fixture fixtureA, Fixture fixtureB) {
+        // Self-collision does not kill — only opponent body contact is lethal
     }
 
     @Override

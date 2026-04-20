@@ -29,7 +29,24 @@ public class CatBodySystem extends IteratingSystem {
         Vector2 headPosition = physics.body.getPosition();
 
         if (catBody.bodyParts.size == 0) {
-            catBody.bodyParts.add(new Vector2(headPosition));
+            Vector2 initialPos = new Vector2(headPosition);
+            catBody.bodyParts.add(initialPos);
+
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.type = BodyDef.BodyType.StaticBody;
+            bodyDef.position.set(initialPos);
+            Body segmentBody = world.createBody(bodyDef);
+
+            FixtureDef fixtureDef = new FixtureDef();
+            CircleShape shape = new CircleShape();
+            shape.setRadius(catBody.segmentRadius);
+            fixtureDef.shape = shape;
+            fixtureDef.isSensor = true;
+            segmentBody.createFixture(fixtureDef);
+            shape.dispose();
+
+            segmentBody.setUserData(entity);
+            catBody.bodySegmentBodies.add(segmentBody);
             return;
         }
 
