@@ -35,7 +35,7 @@ Players control a cat that grows longer as it eats kibbles scattered across the 
 
 | | Fluffy | Shadow | Swift |
 |--|--------|--------|-------|
-| **Max Speed** | 4.0 | 6.0 | 9.0 |
+| **Max Speed** | 4.0 | 5.0 | 6.0 |
 | **Dash Multiplier** | 1.4x | 1.5x | 1.4x |
 | **Starting Size** | 2 | 3 | 1 |
 | **Growth Rate** | 5 | 2 | 3 |
@@ -71,7 +71,7 @@ Minimum 2 players required to start.
 | Physics | Box2D |
 | Entity System | Ashley 1.7.4 |
 | Networking | KryoNet 2.22.0-RC1 |
-| Backend | Firebase SDK |
+| Backend | Custom Java Server (Azure Hosted). |
 | Build | Gradle |
 | Desktop Runtime | LWJGL3 |
 
