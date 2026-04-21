@@ -12,7 +12,6 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 import com.tdt4240Grp04.clashofclaws.network.Network;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -29,7 +28,6 @@ public class LobbyState extends State {
     private Texture lobbyBg, catTexture;
     private String playerName;
     private int selectedCatIndex;
-    private FirebaseSDK firebase;
     private GameClient gameClient;
 
     private Image playerCat;
@@ -50,15 +48,14 @@ public class LobbyState extends State {
     private Table joinRoomTable;   // TextField + Join button (shown after tapping Join Room)
     private TextField roomCodeField;
 
-    public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex) {
-        this(gsm, firebase, name, catIndex, null);
+    public LobbyState(StateManager gsm, String name, int catIndex) {
+        this(gsm, name, catIndex, null);
     }
 
-    public LobbyState(StateManager gsm, FirebaseSDK firebase, String name, int catIndex, String roomCode) {
+    public LobbyState(StateManager gsm, String name, int catIndex, String roomCode) {
         super(gsm);
         this.playerName = name;
         this.selectedCatIndex = catIndex;
-        this.firebase = firebase;
         this.presetRoomCode = roomCode;
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -105,7 +102,7 @@ public class LobbyState extends State {
                     });
                 } else if (object instanceof Network.GameStart) {
                     Gdx.app.postRunnable(() ->
-                        gsm.set(new PlayState(gsm, firebase, gameClient, playerName, selectedCatIndex)));
+                        gsm.set(new PlayState(gsm, gameClient, playerName, selectedCatIndex)));
                 }
             }
         });
@@ -195,7 +192,7 @@ public class LobbyState extends State {
         modeBackBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 gameClient.disconnect();
-                gsm.set(new AddNameState(gsm, firebase, selectedCatIndex));
+                gsm.set(new AddNameState(gsm, selectedCatIndex));
             }
         });
 
@@ -266,7 +263,7 @@ public class LobbyState extends State {
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 gameClient.disconnect();
-                gsm.set(new LobbyState(gsm, firebase, playerName, selectedCatIndex));
+                gsm.set(new LobbyState(gsm, playerName, selectedCatIndex));
             }
         });
         Table backTable = new Table();
@@ -279,8 +276,8 @@ public class LobbyState extends State {
         float jSize = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.22f;
         float knobSize = jSize * 0.42f;
 
-        Touchpad.TouchpadStyle touchpadStyle = skin.get(Touchpad.TouchpadStyle.class);                                                                                                          
-        touchpadStyle.background.setMinWidth(jSize);                                                                                                                                            
+        Touchpad.TouchpadStyle touchpadStyle = skin.get(Touchpad.TouchpadStyle.class);
+        touchpadStyle.background.setMinWidth(jSize);
         touchpadStyle.background.setMinHeight(jSize);
         touchpadStyle.knob.setMinWidth(knobSize);
         touchpadStyle.knob.setMinHeight(knobSize);

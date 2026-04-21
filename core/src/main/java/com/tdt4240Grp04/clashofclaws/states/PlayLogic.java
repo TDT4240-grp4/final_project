@@ -3,7 +3,6 @@ package com.tdt4240Grp04.clashofclaws.states;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
@@ -11,7 +10,6 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -24,7 +22,6 @@ import com.tdt4240Grp04.clashofclaws.ecs.components.PhysicsComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PlayerComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.SizeComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.CatTypeComponent;
-import com.tdt4240Grp04.clashofclaws.ecs.components.CharacterComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.components.PowerupComponent;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.CatBodySystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.DashSystem;
@@ -32,12 +29,10 @@ import com.tdt4240Grp04.clashofclaws.ecs.systems.MovementSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PhysicsSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.PowerupSystem;
 import com.tdt4240Grp04.clashofclaws.ecs.systems.RemovalSystem;
-import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 import com.tdt4240Grp04.clashofclaws.listeners.CollisionListener;
 import com.tdt4240Grp04.clashofclaws.network.GameClient;
 import com.tdt4240Grp04.clashofclaws.network.Network;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 public class PlayLogic {

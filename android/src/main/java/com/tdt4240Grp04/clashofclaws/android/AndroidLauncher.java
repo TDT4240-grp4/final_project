@@ -13,9 +13,8 @@ public class AndroidLauncher extends AndroidApplication {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FirebaseApp.initializeApp(this);
-        AndroidFirebaseSDK firebase = new AndroidFirebaseSDK();
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useImmersiveMode = true;
-        initialize(new ClashOfClaws(firebase), config);
+        initialize(new ClashOfClaws(), config);
     }
 }

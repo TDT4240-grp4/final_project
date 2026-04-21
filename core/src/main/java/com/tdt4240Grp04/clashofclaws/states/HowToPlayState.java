@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 
 public class HowToPlayState extends State {
     private Stage stage;
@@ -27,7 +26,7 @@ public class HowToPlayState extends State {
     private Texture dotTexActive, dotTexInactive;
     private Image[] dots;
 
-    public HowToPlayState(StateManager gsm, FirebaseSDK firebase) {
+    public HowToPlayState(StateManager gsm) {
         super(gsm);
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -178,7 +177,7 @@ public class HowToPlayState extends State {
         TextButton backBtn = new TextButton("BACK", skin);
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new LoginState(gsm, firebase));
+                gsm.set(new LoginState(gsm));
             }
         });
 

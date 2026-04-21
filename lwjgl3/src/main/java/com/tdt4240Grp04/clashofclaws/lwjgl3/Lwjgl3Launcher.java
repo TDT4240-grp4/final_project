@@ -12,7 +12,7 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new ClashOfClaws(new DesktopFirebaseSDK()), getDefaultConfiguration());
+        return new Lwjgl3Application(new ClashOfClaws(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
