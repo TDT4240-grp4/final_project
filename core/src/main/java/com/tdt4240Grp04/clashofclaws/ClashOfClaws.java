@@ -12,11 +12,9 @@ import com.tdt4240Grp04.clashofclaws.states.StateManager;
 public class ClashOfClaws extends ApplicationAdapter {
     private SpriteBatch batch;
     private StateManager gsm;
-    private FirebaseSDK firebase;
     private Music music;
 
-    public ClashOfClaws(FirebaseSDK firebase) {
-        this.firebase = firebase;
+    public ClashOfClaws() {
     }
 
     @Override
@@ -26,7 +24,7 @@ public class ClashOfClaws extends ApplicationAdapter {
         music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
         AudioManager.getInstance().playMusic(music);
         AudioManager.getInstance().loadGameSounds();
-        gsm.push(new LoginState(gsm, firebase));
+        gsm.push(new LoginState(gsm));
     }
 
     @Override

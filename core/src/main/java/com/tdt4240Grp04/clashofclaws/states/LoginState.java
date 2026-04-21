@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 
 public class LoginState extends State {
     private Stage stage;
@@ -19,7 +18,7 @@ public class LoginState extends State {
     private TextureAtlas atlas;
     private Texture angryCatTexture, titleTexture;
 
-    public LoginState(StateManager gsm, FirebaseSDK firebase) {
+    public LoginState(StateManager gsm) {
         super(gsm);
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -74,7 +73,7 @@ public class LoginState extends State {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 String code = codeField.getText().trim().toUpperCase();
                 if (code.length() == 6) {
-                    gsm.set(new CharacterSelectionState(gsm, firebase, code));
+                    gsm.set(new CharacterSelectionState(gsm, code));
                 } else {
                     codeField.setColor(Color.RED);
                 }
@@ -107,22 +106,22 @@ public class LoginState extends State {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 String code = codeField.getText().trim().toUpperCase();
                 if (code.length() == 6) {
-                    gsm.set(new CharacterSelectionState(gsm, firebase, code));
+                    gsm.set(new CharacterSelectionState(gsm, code));
                 } else {
-                    gsm.set(new CharacterSelectionState(gsm, firebase));
+                    gsm.set(new CharacterSelectionState(gsm));
                 }
             }
         });
 
         howToPlayBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new HowToPlayState(gsm, firebase));
+                gsm.set(new HowToPlayState(gsm));
             }
         });
 
         settingsBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new SettingsState(gsm, firebase));
+                gsm.set(new SettingsState(gsm));
             }
         });
 

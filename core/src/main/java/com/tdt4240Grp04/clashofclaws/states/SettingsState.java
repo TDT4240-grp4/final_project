@@ -10,18 +10,15 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.tdt4240Grp04.clashofclaws.audio.AudioManager;
 
 public class SettingsState extends State {
     private Stage stage;
     private Skin skin;
     private TextureAtlas atlas;
-    private final FirebaseSDK firebase;
 
-    public SettingsState(StateManager gsm, FirebaseSDK firebase) {
+    public SettingsState(StateManager gsm) {
         super(gsm);
-        this.firebase = firebase;
 
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -91,7 +88,7 @@ public class SettingsState extends State {
         TextButton backBtn = new TextButton("BACK", btnStyle);
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new LoginState(gsm, firebase));
+                gsm.set(new LoginState(gsm));
             }
         });
         backBtn.getLabel().setFontScale(0.55f);

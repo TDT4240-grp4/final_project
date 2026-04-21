@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.Color;
@@ -26,11 +25,11 @@ public class CharacterSelectionState extends State {
 
     private String roomCode;
 
-    public CharacterSelectionState(StateManager gsm, FirebaseSDK firebase) {
-        this(gsm, firebase, null);
+    public CharacterSelectionState(StateManager gsm) {
+        this(gsm, null);
     }
 
-    public CharacterSelectionState(StateManager gsm, FirebaseSDK firebase, String roomCode) {
+    public CharacterSelectionState(StateManager gsm, String roomCode) {
         super(gsm);
         this.roomCode = roomCode;
         this.stage = new Stage(new ScreenViewport());
@@ -82,14 +81,14 @@ public class CharacterSelectionState extends State {
         backBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new LoginState(gsm, firebase));
+                gsm.set(new LoginState(gsm));
             }
         });
 
         playBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new AddNameState(gsm, firebase, currentCatIndex, roomCode));
+                gsm.set(new AddNameState(gsm, currentCatIndex, roomCode));
                 Gdx.app.log("Game", "Starting game with Cat: " + currentCatIndex);
             }
         });

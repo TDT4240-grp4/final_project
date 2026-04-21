@@ -18,6 +18,8 @@ public class GameServer {
     // Room management
     private static ConcurrentHashMap<String, List<Connection>> rooms = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, String> playerRooms = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Boolean> roomPlaying = new ConcurrentHashMap<>();
+
     // Per-room kibbles
     private static ConcurrentHashMap<String, ConcurrentHashMap<Integer, Network.KibbleData>> roomKibbles = new ConcurrentHashMap<>();
     private static int kibbleIdCounter = 0;
@@ -64,6 +66,7 @@ public class GameServer {
                         room.add(connection);
                         rooms.put(code, room);
                         playerRooms.put(connection.getID(), code);
+                        roomPlaying.put(code, false);
 
                         Network.PlayerConnected p = players.get(connection.getID());
                         if (p != null) { p.name = msg.name; p.catIndex = msg.catIndex; }
@@ -94,6 +97,12 @@ public class GameServer {
                             if (room.size() >= MAX_PLAYERS) {
                                 Network.RoomError err = new Network.RoomError();
                                 err.message = "Room is full (max " + MAX_PLAYERS + ")";
+                                server.sendToTCP(connection.getID(), err);
+                                return;
+                            }
+                            if (roomPlaying.getOrDefault(code, false)) {
+                                Network.RoomError err = new Network.RoomError();
+                                err.message = "Match is currently ongoing";
                                 server.sendToTCP(connection.getID(), err);
                                 return;
                             }
@@ -299,6 +308,7 @@ public class GameServer {
                                 rooms.remove(roomCode);
                                 roomKibbles.remove(roomCode);
                                 roomPowerups.remove(roomCode);
+                                roomPlaying.remove(roomCode);
                             } else {
                                 broadcastLobbyUpdate(room);
                             }
@@ -335,6 +345,7 @@ public class GameServer {
 
     private static void startGame(String roomCode, List<Connection> room) {
         System.out.println("Starting game for room " + roomCode + " with " + room.size() + " players");
+        roomPlaying.put(roomCode, true);
         // Generate kibbles for this room
         ConcurrentHashMap<Integer, Network.KibbleData> kibbles = new ConcurrentHashMap<>();
         synchronized (GameServer.class) {

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.tdt4240Grp04.clashofclaws.FirebaseSDK;
 
 public class ResultsState extends State {
     private Stage stage;
@@ -20,11 +19,9 @@ public class ResultsState extends State {
     private TextureAtlas atlas;
     private Texture catTexture;
     private final ResultsData data;
-    private final FirebaseSDK firebase;
 
-    public ResultsState(StateManager gsm, FirebaseSDK firebase, ResultsData data) {
+    public ResultsState(StateManager gsm, ResultsData data) {
         super(gsm);
-        this.firebase = firebase;
         this.data = data;
 
         stage = new Stage(new ScreenViewport());
@@ -99,7 +96,7 @@ public class ResultsState extends State {
         backBtn.getLabel().setFontScale(H * 0.0012f);
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                gsm.set(new LoginState(gsm, firebase));
+                gsm.set(new LoginState(gsm));
             }
         });
         root.add(backBtn).width(W * 0.25f).height(H * 0.075f);
