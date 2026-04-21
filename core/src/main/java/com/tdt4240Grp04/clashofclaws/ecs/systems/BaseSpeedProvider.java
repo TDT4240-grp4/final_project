@@ -10,7 +10,7 @@ public class BaseSpeedProvider implements SpeedProvider {
 
     private static final float DEFAULT_MAX_SPEED = 5f;
     private static final float DEFAULT_MIN_SPEED = 1.5f;
-    private static final float MAX_LENGTH_FOR_MIN_SPEED = 500f;
+    private static final float MAX_LENGTH_FOR_MIN_SPEED = 350f;
 
     private float logTimer = 0f;
 

@@ -4,8 +4,8 @@ public class GameConfig {
 
     // Cat index 0 = Fluffy, 1 = Shadow, 2 = Swift
     // Speed scaled for 200x200 map: Cat1=3, Cat2=4, Cat3=5
-    private static final float[] BASE_MAX_SPEED  = { 4.0f, 6.0f, 9.0f };
-    private static final float[] BASE_MIN_SPEED  = { 1.5f, 2.0f, 3.0f };
+    private static final float[] BASE_MAX_SPEED  = { 4.0f, 5.0f, 6.0f };
+    private static final float[] BASE_MIN_SPEED  = { 1.5f, 2.0f, 2.5f };
     private static final float[] DASH_MULTIPLIER = { 1.4f, 1.5f, 1.4f };
     private static final float[] MAX_STAMINA     = { 100f,  100f,  100f  };
     private static final float[] DRAIN_RATE      = { 20f,   35f,   25f   };
